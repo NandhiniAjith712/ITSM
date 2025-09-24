@@ -1,0 +1,467 @@
+/* Reset and base styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Main container */
+.ticket-login-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #87CEEB 0%, #a8b4c6 50%, #a8afb6 100%);
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 5%;
+  overflow: hidden;
+}
+
+/* Background Shapes */
+.background-shapes {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.shape {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  animation: float 6s ease-in-out infinite;
+}
+
+.shape-1 {
+  width: 120px;
+  height: 120px;
+  top: 15%;
+  left: 10%;
+  animation-delay: 0s;
+}
+
+.shape-2 {
+  width: 80px;
+  height: 80px;
+  top: 25%;
+  right: 15%;
+  animation-delay: 1s;
+}
+
+.shape-3 {
+  width: 150px;
+  height: 150px;
+  bottom: 20%;
+  left: 5%;
+  animation-delay: 2s;
+}
+
+.shape-4 {
+  width: 100px;
+  height: 100px;
+  bottom: 30%;
+  right: 10%;
+  animation-delay: 3s;
+}
+
+.shape-5 {
+  width: 60px;
+  height: 60px;
+  top: 60%;
+  left: 50%;
+  animation-delay: 4s;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-20px) rotate(180deg); }
+}
+
+/* Left Content Area */
+.left-content {
+  flex: 1;
+  max-width: 500px;
+  z-index: 10;
+  color: white;
+}
+
+.brand-section {
+  padding-right: 40px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 40px;
+}
+
+.logo-icon {
+  font-size: 40px;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+}
+
+.logo-text {
+  font-size: 36px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+.main-heading {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.2;
+  margin-bottom: 30px;
+  text-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+.description {
+  font-size: 18px;
+  line-height: 1.6;
+  opacity: 0.95;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Right Login Panel */
+.login-panel {
+  flex: 1;
+  max-width: 500px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10;
+}
+
+.login-content {
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(20px);
+  border-radius: 25px;
+  padding: 50px 40px;
+  width: 100%;
+  max-width: 450px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.login-header h2 {
+  color: white;
+  font-size: 24px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.login-header p {
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+}
+
+/* Form Styles */
+.login-form {
+  margin-bottom: 30px;
+}
+
+.input-group {
+  position: relative;
+  margin-bottom: 25px;
+  display: flex;
+  align-items: center;
+}
+
+.input-icon {
+  position: absolute;
+  left: 20px;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  z-index: 2;
+  pointer-events: none;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-input {
+  width: 100%;
+  padding: 18px 50px 18px 55px;
+  background: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  color: #8B5CF6;
+  font-size: 16px;
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  position: relative;
+  z-index: 1;
+  line-height: 1.2;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+.form-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+  text-shadow: none;
+}
+
+.form-input:focus {
+  outline: none;
+  background: rgba(255, 255, 255, 0.25);
+  border-color: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+  z-index: 2;
+}
+
+.password-toggle {
+  position: absolute;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 18px;
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  padding: 5px;
+  border-radius: 5px;
+  transition: all 0.3s ease;
+  z-index: 3;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.password-toggle:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: white;
+}
+
+/* Ensure password text is always visible */
+.form-input[type="password"],
+.form-input[type="text"] {
+  -webkit-text-security: none;
+  text-security: none;
+  -webkit-text-fill-color: #8B5CF6;
+  color: #8B5CF6 !important;
+  caret-color: #8B5CF6;
+}
+
+/* Additional styling to prevent text hiding */
+.input-group input {
+  position: relative;
+  z-index: 1;
+  background-clip: padding-box;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+/* Ensure text doesn't overlap with icons */
+.form-input {
+  text-indent: 0;
+  padding-left: 55px !important;
+  padding-right: 50px !important;
+}
+
+/* Override any potential conflicts and ensure password visibility */
+.ticket-login-container .form-input[type="password"],
+.ticket-login-container .form-input[type="text"] {
+  -webkit-text-security: none !important;
+  text-security: none !important;
+  -webkit-text-fill-color: #8B5CF6 !important;
+  color: #8B5CF6 !important;
+  caret-color: #8B5CF6 !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.5px !important;
+}
+
+/* Ensure proper text rendering */
+.ticket-login-container .form-input {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/* Login Button */
+.login-button {
+  width: 100%;
+  padding: 18px;
+  background: #1F2937;
+  color: white;
+  border: none;
+  border-radius: 15px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 15px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+.login-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 35px rgba(0, 0, 0, 0.4);
+  background: #111827;
+}
+
+.login-button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.arrow {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+}
+
+.login-button:hover .arrow {
+  transform: translateX(5px);
+}
+
+/* Error Message */
+.error-message {
+  background: rgba(239, 68, 68, 0.2);
+  color: #FECACA;
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  font-size: 14px;
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* Remember Me Checkbox */
+.remember-me-container {
+  margin: 15px 0;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.remember-me-label {
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  font-size: 14px;
+  color: #666;
+  user-select: none;
+}
+
+.remember-me-checkbox {
+  margin-right: 8px;
+  width: 16px;
+  height: 16px;
+  accent-color: #7B6FDD;
+  cursor: pointer;
+}
+
+.remember-me-text {
+  font-size: 14px;
+  color: #666;
+  font-weight: 400;
+}
+
+.remember-me-label:hover .remember-me-text {
+  color: #7B6FDD;
+}
+
+/* Responsive Design */
+
+/* Responsive Design */
+@media (max-width: 1200px) {
+  .ticket-login-container {
+    padding: 0 3%;
+  }
+  
+  .left-content {
+    max-width: 400px;
+  }
+  
+  .main-heading {
+    font-size: 40px;
+  }
+  
+  .description {
+    font-size: 16px;
+  }
+}
+
+@media (max-width: 900px) {
+  .ticket-login-container {
+    flex-direction: column;
+    padding: 40px 20px 20px;
+    text-align: center;
+  }
+  
+  .left-content {
+    max-width: 100%;
+    margin-bottom: 40px;
+    padding-right: 0;
+  }
+  
+  .brand-section {
+    padding-right: 0;
+  }
+  
+  .main-heading {
+    font-size: 36px;
+  }
+  
+  .login-panel {
+    max-width: 100%;
+  }
+  
+  .login-content {
+    padding: 40px 30px;
+  }
+}
+
+@media (max-width: 480px) {
+  .ticket-login-container {
+    padding: 40px 15px 15px;
+  }
+  
+  .main-heading {
+    font-size: 28px;
+  }
+  
+  .description {
+    font-size: 14px;
+  }
+  
+  .login-content {
+    padding: 30px 20px;
+  }
+  
+  .form-input {
+    padding: 16px 20px 16px 50px;
+    font-size: 16px;
+  }
+  
+  .login-button {
+    padding: 16px;
+    font-size: 15px;
+  }
+}
