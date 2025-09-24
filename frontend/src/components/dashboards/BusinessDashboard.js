@@ -2007,29 +2007,9 @@ const BusinessDashboard = () => {
               <div className="performance-rates-table">
                 <div className="table-header">
                   <h3>📊 SLA Performance Rates</h3>
-                  <p className="table-description">Performance rates calculated based on SLA configurations</p>
-                  <button 
-                    onClick={fetchPerformanceRates}
-                    style={{
-                      marginTop: '10px',
-                      padding: '8px 16px',
-                      backgroundColor: '#667eea',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    🔄 Refresh Performance Rates
-                  </button>
+                  <p className="table-description">Performance rates calculated based on actual response and resolution times</p>
                 </div>
                 
-                {/* Debug info - remove this later */}
-                <div style={{padding: '10px', background: '#f0f0f0', margin: '10px', borderRadius: '4px', fontSize: '12px'}}>
-                  <strong>Debug Info:</strong><br/>
-                  Performance Rates Array Length: {performanceRates.length}<br/>
-                  Performance Rates Data: {JSON.stringify(performanceRates, null, 2)}
-                </div>
                 
                 {performanceRates.length === 0 ? (
                   <div className="no-performance-rates">

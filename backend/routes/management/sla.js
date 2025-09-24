@@ -737,20 +737,56 @@ router.get('/performance-rates', async (req, res) => {
     `);
     
     // Calculate performance rates for each configuration
-    const performanceRates = configurations.map(config => {
-      const responseTimeMinutes = config.response_time_minutes;
-      const resolutionTimeMinutes = config.resolution_time_minutes;
+    const performanceRates = await Promise.all(configurations.map(async config => {
+      const slaResponseTimeMinutes = config.response_time_minutes;
+      const slaResolutionTimeMinutes = config.resolution_time_minutes;
       
-      // For demonstration, we'll use the SLA times as "actual" times
-      // In a real scenario, you'd get actual response/resolution times from tickets
-      const actualResponseTime = responseTimeMinutes; // This would come from actual ticket data
-      const actualResolutionTime = resolutionTimeMinutes; // This would come from actual ticket data
+      // Get actual response and resolution times from tickets for this module
+      const [tickets] = await pool.execute(`
+        SELECT 
+          first_response_at,
+          resolved_at,
+          created_at,
+          status
+        FROM tickets 
+        WHERE module_id = ? 
+        AND first_response_at IS NOT NULL
+        AND resolved_at IS NOT NULL
+        AND status = 'closed'
+      `, [config.module_id]);
       
-      // Calculate Response Time Performance Rate
-      const responseTimePerformanceRate = (actualResponseTime / responseTimeMinutes) * 100;
+      let responseTimePerformanceRate = 0;
+      let resolutionTimePerformanceRate = 0;
       
-      // Calculate Resolution Time Performance Rate  
-      const resolutionTimePerformanceRate = (actualResolutionTime / resolutionTimeMinutes) * 100;
+      if (tickets.length > 0) {
+        // Calculate average actual response time
+        const actualResponseTimes = tickets.map(ticket => {
+          const created = new Date(ticket.created_at);
+          const firstResponse = new Date(ticket.first_response_at);
+          return Math.floor((firstResponse - created) / (1000 * 60)); // Convert to minutes
+        });
+        
+        const avgActualResponseTime = actualResponseTimes.reduce((sum, time) => sum + time, 0) / actualResponseTimes.length;
+        
+        // Calculate average actual resolution time
+        const actualResolutionTimes = tickets.map(ticket => {
+          const created = new Date(ticket.created_at);
+          const resolved = new Date(ticket.resolved_at);
+          return Math.floor((resolved - created) / (1000 * 60)); // Convert to minutes
+        });
+        
+        const avgActualResolutionTime = actualResolutionTimes.reduce((sum, time) => sum + time, 0) / actualResolutionTimes.length;
+        
+        // Calculate Response Time Performance Rate (SLA Time / Actual Time) * 100, capped at 100%
+        responseTimePerformanceRate = Math.min(100, (slaResponseTimeMinutes / avgActualResponseTime) * 100);
+        
+        // Calculate Resolution Time Performance Rate (SLA Time / Actual Time) * 100, capped at 100%
+        resolutionTimePerformanceRate = Math.min(100, (slaResolutionTimeMinutes / avgActualResolutionTime) * 100);
+      } else {
+        // No actual data available, show 0% or N/A
+        responseTimePerformanceRate = 0;
+        resolutionTimePerformanceRate = 0;
+      }
       
       // Calculate Overall Performance Rate
       const overallPerformanceRate = (responseTimePerformanceRate + resolutionTimePerformanceRate) / 2;
@@ -760,13 +796,13 @@ router.get('/performance-rates', async (req, res) => {
         product_name: config.product_name,
         module_name: config.module_name,
         issue_name: config.issue_name,
-        sla_response_time: responseTimeMinutes,
-        sla_resolution_time: resolutionTimeMinutes,
+        sla_response_time: slaResponseTimeMinutes,
+        sla_resolution_time: slaResolutionTimeMinutes,
         response_time_performance_rate: Math.round(responseTimePerformanceRate * 100) / 100,
         resolution_time_performance_rate: Math.round(resolutionTimePerformanceRate * 100) / 100,
         overall_performance_rate: Math.round(overallPerformanceRate * 100) / 100
       };
-    });
+    }));
     
     console.log(`✅ Calculated performance rates for ${performanceRates.length} configurations`);
     

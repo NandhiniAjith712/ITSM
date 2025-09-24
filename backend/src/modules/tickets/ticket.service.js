@@ -104,10 +104,41 @@ class TicketService {
         throw new AppError('Invalid status', HTTP_STATUS.BAD_REQUEST);
       }
 
-      const [result] = await pool.execute(
-        'UPDATE tickets SET status = ?, assigned_by = ? WHERE id = ?',
-        [status, userId, ticketId]
+      // Get current ticket status to check if we need to record timestamps
+      const [currentTicket] = await pool.execute(
+        'SELECT status, first_response_at, resolved_at FROM tickets WHERE id = ?',
+        [ticketId]
       );
+
+      if (currentTicket.length === 0) {
+        throw new AppError('Ticket not found', HTTP_STATUS.NOT_FOUND);
+      }
+
+      const currentStatus = currentTicket[0].status;
+      const now = new Date();
+
+      // Prepare update query with timestamp tracking
+      let updateQuery = 'UPDATE tickets SET status = ?, assigned_by = ?';
+      let queryParams = [status, userId];
+
+      // Record first response time when status changes to 'in_progress'
+      if (status === 'in_progress' && currentStatus !== 'in_progress' && !currentTicket[0].first_response_at) {
+        updateQuery += ', first_response_at = ?';
+        queryParams.push(now);
+        console.log(`📝 Recording first response time for ticket ${ticketId}: ${now.toISOString()}`);
+      }
+
+      // Record resolution time when status changes to 'closed'
+      if (status === 'closed' && currentStatus !== 'closed' && !currentTicket[0].resolved_at) {
+        updateQuery += ', resolved_at = ?';
+        queryParams.push(now);
+        console.log(`📝 Recording resolution time for ticket ${ticketId}: ${now.toISOString()}`);
+      }
+
+      queryParams.push(ticketId);
+      updateQuery += ' WHERE id = ?';
+
+      const [result] = await pool.execute(updateQuery, queryParams);
 
       if (result.affectedRows === 0) {
         throw new AppError('Ticket not found', HTTP_STATUS.NOT_FOUND);
