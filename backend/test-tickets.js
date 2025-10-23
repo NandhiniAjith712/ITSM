@@ -103,7 +103,7 @@ async function testTickets() {
     }
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
   } finally {
     if (connection) {
       await connection.end();

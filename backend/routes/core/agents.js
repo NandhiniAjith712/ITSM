@@ -285,12 +285,17 @@ router.post('/logout', authenticateToken, async (req, res) => {
 // GET /api/agents/profile - Get agent profile
 router.get('/profile', authenticateToken, async (req, res) => {
   try {
+    console.log('🔍 JWT Token payload:', req.user);
     const agentId = req.user.agentId || req.user.id;
+    console.log('🔍 Extracted agent ID:', agentId);
     
     const [agents] = await pool.execute(
-      'SELECT id, name FROM agents WHERE id = ?',
+      'SELECT id, name, email FROM agents WHERE id = ?',
       [agentId]
     );
+
+    console.log('🔍 Agent profile query result:', agents);
+    console.log('🔍 Agent ID:', agentId);
 
     if (agents.length === 0) {
       return res.status(404).json({
@@ -299,9 +304,14 @@ router.get('/profile', authenticateToken, async (req, res) => {
       });
     }
 
+    const agentData = agents[0];
+    console.log('🔍 Agent data being returned:', agentData);
+    console.log('🔍 Agent email value:', agentData.email);
+    console.log('🔍 Email type:', typeof agentData.email);
+
     res.json({
       success: true,
-      data: agents[0]
+      data: agentData
     });
   } catch (error) {
     console.error('Get agent profile error:', error);

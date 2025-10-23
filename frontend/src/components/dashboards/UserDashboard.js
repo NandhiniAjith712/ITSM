@@ -27,10 +27,6 @@ const UserDashboard = ({ user }) => {
     key: 'created_at',
     direction: 'desc'
   });
-  const [statsSortConfig, setStatsSortConfig] = useState({
-    key: 'value',
-    direction: 'desc'
-  });
   const [repliesSortConfig, setRepliesSortConfig] = useState({
     key: 'timestamp',
     direction: 'desc'
@@ -285,11 +281,7 @@ const UserDashboard = ({ user }) => {
           )
         );
         
-        if (newAgentReplies.length > 0) {
-          // Show notification for new replies
-          const ticket = tickets.find(t => t && t.id === ticketId);
-          showNotification(`💬 New reply from ${newAgentReplies[0].sender_name || 'Support Agent'} on ticket: ${ticket?.issue_title || 'Your ticket'}`);
-        }
+        // Removed notification for new agent replies
         
         setReplies(prev => ({ ...prev, [ticketId]: sortedReplies }));
       }
@@ -545,12 +537,6 @@ const UserDashboard = ({ user }) => {
     }));
   };
 
-  const handleStatsSort = (key) => {
-    setStatsSortConfig(prevConfig => ({
-      key,
-      direction: prevConfig.key === key && prevConfig.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
 
   const sortTickets = (ticketsToSort) => {
     if (!ticketsToSort || !Array.isArray(ticketsToSort) || !sortConfig.key) {
@@ -600,35 +586,14 @@ const UserDashboard = ({ user }) => {
     });
   };
 
-  const sortStats = (statsData) => {
-    const statsArray = [
+  const getStatsArray = (statsData) => {
+    return [
       { key: 'total', label: 'Total Tickets', value: statsData.total, icon: '📊' },
       { key: 'open', label: 'Open Tickets', value: statsData.open, icon: '🆕' },
       { key: 'inProgress', label: 'In Progress', value: statsData.inProgress, icon: '⚡' },
       { key: 'closed', label: 'Closed', value: statsData.closed, icon: '✅' },
       ...(statsData.unreadReplies > 0 ? [{ key: 'unreadReplies', label: 'Unread Replies', value: statsData.unreadReplies, icon: '💬' }] : [])
     ];
-
-    return statsArray.sort((a, b) => {
-      let aValue = a[statsSortConfig.key];
-      let bValue = b[statsSortConfig.key];
-
-      if (statsSortConfig.key === 'value') {
-        aValue = a.value;
-        bValue = b.value;
-      } else if (statsSortConfig.key === 'label') {
-        aValue = a.label.toLowerCase();
-        bValue = b.label.toLowerCase();
-      }
-
-      if (aValue < bValue) {
-        return statsSortConfig.direction === 'asc' ? -1 : 1;
-      }
-      if (aValue > bValue) {
-        return statsSortConfig.direction === 'asc' ? 1 : -1;
-      }
-      return 0;
-    });
   };
 
   const getSortIcon = (key) => {
@@ -636,10 +601,6 @@ const UserDashboard = ({ user }) => {
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
-  const getStatsSortIcon = (key) => {
-    if (statsSortConfig.key !== key) return '↕️';
-    return statsSortConfig.direction === 'asc' ? '↑' : '↓';
-  };
 
   const handleRepliesSort = (key) => {
     setRepliesSortConfig(prevConfig => ({
@@ -689,7 +650,6 @@ const UserDashboard = ({ user }) => {
 
   const resetAllSorting = () => {
     setSortConfig({ key: 'created_at', direction: 'desc' });
-    setStatsSortConfig({ key: 'value', direction: 'desc' });
     setRepliesSortConfig({ key: 'timestamp', direction: 'desc' });
   };
 
@@ -805,7 +765,7 @@ const UserDashboard = ({ user }) => {
           <h3>Dashboard Statistics</h3>
         </div>
         <div className="stats-grid">
-          {sortStats(stats).map(stat => (
+          {getStatsArray(stats).map(stat => (
             <div key={stat.key} className={`stat-card ${stat.key}`} style={{
               background: 'white',
               padding: '15px',
@@ -839,21 +799,6 @@ const UserDashboard = ({ user }) => {
       {/* Action Section */}
       <div className="action-section">
         <div className="action-buttons">
-          <div className="stats-sort-controls">
-            <span className="sort-label">Sort by:</span>
-            <button 
-              className={`sort-btn ${statsSortConfig.key === 'value' ? 'active' : ''}`}
-              onClick={() => handleStatsSort('value')}
-            >
-              Count {getStatsSortIcon('value')}
-            </button>
-            <button 
-              className={`sort-btn ${statsSortConfig.key === 'label' ? 'active' : ''}`}
-              onClick={() => handleStatsSort('label')}
-            >
-              Name {getStatsSortIcon('label')}
-            </button>
-          </div>
           <button 
             className="submit-ticket-btn" 
             onClick={() => setShowForm(!showForm)}

@@ -26,6 +26,7 @@ const ManagerDashboard = ({ manager }) => {
   const [teamMembers, setTeamMembers] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [activeTab, setActiveTab] = useState('overview');
   const [openMediaId, setOpenMediaId] = useState(null);
@@ -45,6 +46,7 @@ const ManagerDashboard = ({ manager }) => {
   const [showReplyForm, setShowReplyForm] = useState(false);
   const [sendingReply, setSendingReply] = useState(false);
   const [selectedTicketForReply, setSelectedTicketForReply] = useState(null);
+  const [buttonToggle, setButtonToggle] = useState(false); // For button color toggle
   
   const [performanceMetrics, setPerformanceMetrics] = useState({
     totalTickets: 0,
@@ -154,9 +156,10 @@ const ManagerDashboard = ({ manager }) => {
   };
 
   // Fetch tickets and team data
-  const fetchData = async () => {
+  const fetchData = async (isRefresh = false) => {
     try {
-      setLoading(true);
+      if (!isRefresh) setLoading(true);
+      if (isRefresh) setIsRefreshing(true);
       
       // Get authentication token
       const token = localStorage.getItem('userToken') || localStorage.getItem('access_token');
@@ -200,21 +203,40 @@ const ManagerDashboard = ({ manager }) => {
         const teamData = await teamResponse.json();
         const teamMembersData = teamData.data || [];
         setTeamMembers(teamMembersData);
-        console.log(' Fetched team members:', teamMembersData.length);
+        console.log('✅ Fetched team members:', teamMembersData.length);
+        
+        // Debug: Log all team members and their roles immediately
+        console.log('🔍 All team members with roles:', teamMembersData.map(m => ({ 
+          id: m.id, 
+          name: m.name, 
+          role: m.role,
+          email: m.email 
+        })));
         
         // Calculate performance metrics with the fetched data
         calculatePerformanceMetrics(ticketsData, teamMembersData);
       } else {
-        console.error(' Failed to fetch team members:', teamResponse.status);
+        console.error('❌ Failed to fetch team members:', teamResponse.status);
       }
+      
+      // For refresh operations, keep the refreshing state for 1 second
+      if (isRefresh) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
     } catch (error) {
       console.error(' Error fetching data:', error);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
   const calculatePerformanceMetrics = (ticketsData, teamMembersData) => {
+    console.log('🔄 calculatePerformanceMetrics called with:');
+    console.log('  - ticketsData length:', ticketsData?.length || 0);
+    console.log('  - teamMembersData length:', teamMembersData?.length || 0);
+    
     const totalTickets = ticketsData.length;
     const resolvedTickets = ticketsData.filter(t => t.status === 'closed').length;
     const avgResolutionTime = totalTickets > 0 ? 
@@ -223,29 +245,46 @@ const ManagerDashboard = ({ manager }) => {
         return acc;
       }, 0) / totalTickets : 0;
 
-    // Filter for support executives only (exclude CEO, Manager, Admin)
+    // Debug: Log all team members and their roles
+    console.log('🔍 All team members:', teamMembersData.map(m => ({ id: m.id, name: m.name, role: m.role })));
+
+    // Filter for support executives - using actual roles from the system
     const supportExecutives = teamMembersData.filter(member => 
+      member.role === 'agent' ||  // Support executives have 'agent' role in this system
       member.role === 'support_executive' || 
-      member.role === 'Support Executive' ||
-      member.role === 'support_executive'
+      member.role === 'Support Executive'
     );
+
+    console.log('👥 Support executives found:', supportExecutives.length);
+    console.log('📊 Support executives:', supportExecutives.map(m => ({ id: m.id, name: m.name, role: m.role })));
+
+    const teamPerformanceData = supportExecutives.map(member => ({
+      ...member,
+      assignedTickets: ticketsData.filter(t => t.assigned_to === member.id).length,
+      resolvedTickets: ticketsData.filter(t => t.assigned_to === member.id && t.status === 'closed').length
+    }));
+
+    console.log('📈 Final team performance data:', teamPerformanceData);
 
     setPerformanceMetrics({
       totalTickets,
       resolvedTickets,
       avgResolutionTime: Math.round(avgResolutionTime),
-      teamPerformance: supportExecutives.map(member => ({
-        ...member,
-        assignedTickets: ticketsData.filter(t => t.assigned_to === member.id).length,
-        resolvedTickets: ticketsData.filter(t => t.assigned_to === member.id && t.status === 'closed').length
-      }))
+      teamPerformance: teamPerformanceData
     });
   };
 
   // Function to recalculate metrics when tickets change
   const recalculateMetrics = () => {
+    console.log('🔄 recalculateMetrics called');
+    console.log('  - tickets.length:', tickets.length);
+    console.log('  - teamMembers.length:', teamMembers.length);
+    
     if (tickets.length > 0 && teamMembers.length > 0) {
+      console.log('✅ Conditions met, calling calculatePerformanceMetrics');
       calculatePerformanceMetrics(tickets, teamMembers);
+    } else {
+      console.log('❌ Conditions not met for recalculateMetrics');
     }
   };
 
@@ -272,8 +311,15 @@ const ManagerDashboard = ({ manager }) => {
 
   // Recalculate metrics whenever tickets change
   useEffect(() => {
+    console.log('🔄 useEffect triggered for tickets/teamMembers change');
+    console.log('  - tickets.length:', tickets.length);
+    console.log('  - teamMembers.length:', teamMembers.length);
+    
     if (tickets.length > 0 && teamMembers.length > 0) {
+      console.log('✅ useEffect conditions met, calling recalculateMetrics');
       recalculateMetrics();
+    } else {
+      console.log('❌ useEffect conditions not met');
     }
   }, [tickets, teamMembers]);
 
@@ -353,11 +399,22 @@ const ManagerDashboard = ({ manager }) => {
       setSelectedTicketForReply(ticket);
       setShowReplyForm(true);
       setReplyText('');
+      setButtonToggle(false); // Reset button toggle when opening form
     } else {
       setShowReplyForm(false);
       setSelectedTicketForReply(null);
       setReplyText('');
+      setButtonToggle(false); // Reset button toggle when closing form
     }
+  };
+
+  // Handle cancel button click with toggle effect
+  const handleCancelClick = () => {
+    setButtonToggle(!buttonToggle);
+    // Close the form after a short delay to show the toggle effect
+    setTimeout(() => {
+      toggleReplyForm();
+    }, 200);
   };
 
   const handleReplySubmit = async () => {
@@ -514,21 +571,56 @@ const ManagerDashboard = ({ manager }) => {
         headers['Authorization'] = `Bearer ${token}`;
       }
       
-      const response = await fetch(`http://localhost:5000/api/chat/messages/${ticketId}`, {
-        method: 'GET',
-        headers: headers
+      // Fetch from both chat messages and replies tables
+      const [chatResponse, repliesResponse] = await Promise.all([
+        fetch(`http://localhost:5000/api/chat/messages/${ticketId}`, {
+          method: 'GET',
+          headers: headers
+        }),
+        fetch(`http://localhost:5000/api/replies/${ticketId}`, {
+          method: 'GET',
+          headers: headers
+        })
+      ]);
+      
+      const chatData = await chatResponse.json();
+      const repliesData = await repliesResponse.json();
+      
+      // Combine both data sources
+      let allMessages = [];
+      
+      // Add chat messages (customer messages)
+      if (chatData.success && Array.isArray(chatData.data)) {
+        allMessages = [...chatData.data];
+      }
+      
+      // Add replies (agent/manager messages)
+      if (repliesData.success && Array.isArray(repliesData.data)) {
+        const formattedReplies = repliesData.data.map(reply => ({
+          id: reply.id,
+          message: reply.message,
+          content: reply.message,
+          sender_type: reply.is_customer_reply ? 'customer' : 'agent',
+          sender_name: reply.is_customer_reply ? reply.customer_name : reply.agent_name,
+          created_at: reply.sent_at,
+          timestamp: reply.sent_at
+        }));
+        allMessages = [...allMessages, ...formattedReplies];
+      }
+      
+      // Sort by timestamp
+      allMessages.sort((a, b) => {
+        const dateA = new Date(a.created_at || a.timestamp || 0);
+        const dateB = new Date(b.created_at || b.timestamp || 0);
+        return dateA - dateB; // Oldest first for chat display
       });
       
-      const data = await response.json();
-      
-      if (data.success) {
-        setTicketReplies(prev => ({
-          ...prev,
-          [ticketId]: data.data
-        }));
-      }
+      setTicketReplies(prev => ({
+        ...prev,
+        [ticketId]: allMessages
+      }));
     } catch (error) {
-      console.error(' Error fetching ticket replies:', error);
+      console.error('❌ Error fetching ticket replies:', error);
     }
   };
 
@@ -557,7 +649,7 @@ const ManagerDashboard = ({ manager }) => {
   const tabList = [
     { key: 'overview', label: '📊 Overview', count: 0 },
     { key: 'analytics', label: '📈 Analytics', count: 0 },
-    { key: 'team', label: '👥 Team Performance', count: teamMembers.length },
+    { key: 'team', label: '👥 Team Performance', count: performanceMetrics.teamPerformance?.length || 0 },
     { key: 'escalated', label: '🚨 Escalated', count: getTicketsByStatus('escalated').length },
     { key: 'closed', label: '✅ Closed Tickets', count: getTicketsByStatus('closed').length },
     { key: 'reports', label: '📋 Reports', count: 0 }
@@ -565,10 +657,11 @@ const ManagerDashboard = ({ manager }) => {
   
   // Debug logging for tab counts
   console.log('📊 Tab counts:', {
-    team: teamMembers.length,
+    team: performanceMetrics.teamPerformance?.length || 0,
     escalated: getTicketsByStatus('escalated').length,
     closed: getTicketsByStatus('closed').length,
-    totalTickets: tickets.length
+    totalTickets: tickets.length,
+    totalTeamMembers: teamMembers.length
   });
 
   if (loading) {
@@ -586,7 +679,13 @@ const ManagerDashboard = ({ manager }) => {
         <div className="header-content">
           <h1>🔧 Support Manager Dashboard</h1>
           <div className="header-actions">
-            <a href="/" className="user-form-link">🔄 Refresh</a>
+            <button 
+              className="action-button refresh-btn" 
+              onClick={() => fetchData(true)}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+            </button>
             <button 
               onClick={() => {
                 localStorage.removeItem('userData');
@@ -849,34 +948,64 @@ const ManagerDashboard = ({ manager }) => {
           {activeTab === 'team' && (
             <div className="team-section">
               <h3>Team Performance</h3>
-              <div className="team-grid">
-                {performanceMetrics.teamPerformance.map(member => (
-                  <div key={member.id} className="team-member-card">
-                    <div className="member-info">
-                      <h4>{member.name}</h4>
-                      <p>{member.email}</p>
-                    </div>
-                    <div className="member-stats">
-                      <div className="stat">
-                        <span className="stat-label">Assigned</span>
-                        <span className="stat-value">{member.assignedTickets}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Resolved</span>
-                        <span className="stat-value">{member.resolvedTickets}</span>
-                      </div>
-                      <div className="stat">
-                        <span className="stat-label">Success Rate</span>
-                        <span className="stat-value">
-                          {member.assignedTickets > 0 
-                            ? Math.round((member.resolvedTickets / member.assignedTickets) * 100)
-                            : 0}%
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
+              
+              {/* Debug Information - Remove this after confirming fix */}
+              <div style={{ 
+                background: '#f8f9fa', 
+                padding: '15px', 
+                marginBottom: '20px', 
+                borderRadius: '8px',
+                border: '1px solid #dee2e6',
+                fontSize: '14px'
+              }}>
+                <strong> ℹ️ Info:</strong><br/>
+                <i></i>Total team members: {teamMembers.length}<br/>
+                Support executives/Agents found: {performanceMetrics.teamPerformance?.length || 0}
               </div>
+              
+              {performanceMetrics.teamPerformance && performanceMetrics.teamPerformance.length > 0 ? (
+                <div className="team-grid">
+                  {performanceMetrics.teamPerformance.map(member => (
+                    <div key={member.id} className="team-member-card">
+                      <div className="member-info">
+                        <h4>{member.name}</h4>
+                        <p>{member.email}</p>
+                      </div>
+                      <div className="member-stats">
+                        <div className="stat">
+                          <span className="stat-label">Assigned</span>
+                          <span className="stat-value" style={{ color: '#007bff', fontWeight: 'bold' }}>{member.assignedTickets}</span>
+                        </div>
+                        <div className="stat">
+                          <span className="stat-label">Resolved</span>
+                          <span className="stat-value" style={{ color: '#28a745', fontWeight: 'bold' }}>{member.resolvedTickets}</span>
+                        </div>
+                        <div className="stat">
+                          <span className="stat-label">Success Rate</span>
+                          <span className="stat-value" style={{ color: '#ffc107', fontWeight: 'bold' }}>
+                            {member.assignedTickets > 0 
+                              ? Math.round((member.resolvedTickets / member.assignedTickets) * 100)
+                              : 0}%
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '40px', 
+                  background: '#f8f9fa', 
+                  borderRadius: '8px',
+                  border: '1px solid #dee2e6'
+                }}>
+                  <h4>No Team Performance Data Available</h4>
+                  <p>No support executives found in the team data.</p>
+                  <p>Total team members: {teamMembers.length}</p>
+                  <p>Team performance array: {performanceMetrics.teamPerformance?.length || 0} members</p>
+                </div>
+              )}
             </div>
           )}
 
@@ -1378,17 +1507,44 @@ const ManagerDashboard = ({ manager }) => {
           {activeTab === 'reports' && (
             <div className="reports-section">
               <h3>Performance Reports</h3>
-              <div className="report-cards">
-                <div className="report-card">
-                  <h4>Monthly Summary</h4>
-                  <div className="report-content">
-                    <p>Total Tickets: {performanceMetrics.totalTickets}</p>
-                    <p>Resolved: {performanceMetrics.resolvedTickets}</p>
-                    <p>Pending: {performanceMetrics.totalTickets - performanceMetrics.resolvedTickets}</p>
-                    <p>Average Resolution Time: {performanceMetrics.avgResolutionTime} hours</p>
+              
+              {/* Monthly Summary Stats Cards */}
+              <div className="metrics-grid">
+                <div className="metric-card">
+                  <div className="metric-top">
+                    <span className="metric-emoji">📊</span>
+                    <span className="metric-value">{performanceMetrics.totalTickets}</span>
                   </div>
+                  <h3>Total Tickets</h3>
                 </div>
                 
+                <div className="metric-card">
+                  <div className="metric-top">
+                    <span className="metric-emoji">✅</span>
+                    <span className="metric-value">{performanceMetrics.resolvedTickets}</span>
+                  </div>
+                  <h3>Resolved Tickets</h3>
+                </div>
+                
+                <div className="metric-card">
+                  <div className="metric-top">
+                    <span className="metric-emoji">⏳</span>
+                    <span className="metric-value">{performanceMetrics.totalTickets - performanceMetrics.resolvedTickets}</span>
+                  </div>
+                  <h3>Pending Tickets</h3>
+                </div>
+                
+                <div className="metric-card">
+                  <div className="metric-top">
+                    <span className="metric-emoji">⏱️</span>
+                    <span className="metric-value">{performanceMetrics.avgResolutionTime}h</span>
+                  </div>
+                  <h3>Avg Resolution Time</h3>
+                </div>
+              </div>
+              
+              {/* Team Performance Report Card */}
+              <div className="report-cards" style={{ marginTop: '32px' }}>
                 <div className="report-card">
                   <h4>Team Performance</h4>
                   <div className="report-content">
@@ -1440,15 +1596,15 @@ const ManagerDashboard = ({ manager }) => {
                 
                 <div className="reply-actions">
                   <button
-                    className="reply-send-btn"
+                    className={`reply-send-btn ${buttonToggle ? 'reply-send-btn-toggled' : ''}`}
                     onClick={handleReplySubmit}
                     disabled={sendingReply || !replyText.trim()}
                   >
                     {sendingReply ? 'Sending...' : 'Send Reply'}
                   </button>
                   <button
-                    className="reply-cancel-btn"
-                    onClick={() => toggleReplyForm()}
+                    className={`reply-cancel-btn ${buttonToggle ? 'reply-cancel-btn-toggled' : ''}`}
+                    onClick={handleCancelClick}
                     disabled={sendingReply}
                   >
                     Cancel

@@ -349,7 +349,7 @@ further down in the "NEW BUSINESS DASHBOARD STYLES" section.
   padding: 15px;
   border-radius: 5px;
   margin-bottom: 20px;
-  border-left: 4px solid #F5C2C7;
+  border-left: black;
 }
 
 .products-section {
@@ -1685,11 +1685,11 @@ body:has(.add-sla-form) {
 }
 
 .message {
-  transition: all 0.3s ease;
+  transition: none;
 }
 
 .message:hover {
-  transform: translateX(5px);
+  transform: none;
 }
 
 .new-message {
@@ -1823,7 +1823,7 @@ body:has(.add-sla-form) {
 
 /* Agent role dropdown specific styling */
 .agent-form-group select {
-  width: 47% !important;               /* REDUCED: Shorter dropdown width for role selection */
+  width: 100% !important;               /* Match other form fields */
 }
 
 .agent-form-row {
@@ -2553,7 +2553,6 @@ body:has(.add-sla-form) {
   color: #333;
   padding: 0;
   border-radius: 8px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -2585,6 +2584,7 @@ body:has(.add-sla-form) {
   line-height: 1.4;
   text-align: center;
   background: none !important;
+  background-color: none !important;
 }
 
 .success-close-btn {
@@ -2661,18 +2661,6 @@ body:has(.add-sla-form) {
   overflow: hidden;
 }
 
-.error-icon {
-  background: #ef4444;
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 30px auto 20px auto;
-  font-size: 2.5em;
-  color: white;
-}
 
 .error-message {
   padding: 0 30px 30px 30px;
@@ -2685,7 +2673,7 @@ body:has(.add-sla-form) {
 }
 
 .error-close-btn {
-  background: #ef4444;
+  background: #eb8888;
   color: white;
   border: none;
   padding: 12px 24px;
@@ -3670,31 +3658,72 @@ performance rates for response time, resolution time, and overall performance.
 */
 
 .performance-rates-table {
-  margin: 30px 0;
-  background: var(--card);
-  border-radius: 12px;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  overflow: hidden;
+  margin: 30px;
+  background: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  overflow: visible;
 }
 
 .performance-rates-table .table-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  padding: 25px 35px;
+  background: transparent;
+  padding: 25px 40px 25px 10px;
   border-bottom: none;
 }
 
+.performance-rates-table .table-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .performance-rates-table .table-header h3 {
-  margin: 0 0 8px 0;
-  font-size: 1.5rem;
+  margin: 0;
+  font-size: 1.3rem;
   font-weight: 600;
-  color: white;
+  color: #333;
+  line-height: 1.2;
+}
+
+.performance-rates-table .table-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-left: auto;
+  margin-right:-145px;
+}
+
+.performance-rates-table .product-filter-dropdown {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  background: white;
+  font-size: 0.875rem;
+  color: #374151;
+  cursor: pointer;
+  min-width: 180px;
+}
+
+.performance-rates-table .product-filter-dropdown:focus {
+  outline: none;
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.performance-rates-table .product-filter-dropdown:hover {
+  border-color: #9ca3af;
+}
+
+.performance-rates-table .table-header h3 {
+  margin: 0;
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #333;
 }
 
 .performance-rates-table .table-description {
-  margin: 0;
   font-size: 0.9rem;
-  color: rgba(255, 255, 255, 0.9);
+  color: #666;
   font-weight: 400;
 }
 
@@ -3708,7 +3737,7 @@ performance rates for response time, resolution time, and overall performance.
   background: #f8fafc;
   color: #374151;
   font-weight: 600;
-  font-size: 0.875rem;
+  font-size: 0.9m;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   padding: 16px 12px;
@@ -3722,10 +3751,6 @@ performance rates for response time, resolution time, and overall performance.
 .performance-table tbody tr {
   border-bottom: 1px solid #e5e7eb;
   transition: background-color 0.2s ease;
-}
-
-.performance-table tbody tr:hover {
-  background-color: #f9fafb;
 }
 
 .performance-table tbody tr:last-child {
@@ -3746,6 +3771,72 @@ performance rates for response time, resolution time, and overall performance.
   color: #1f2937;
 }
 
+/* Enhanced visibility for product names */
+.performance-table .td-product .product-name {
+  font-weight: 600;
+  color: #111827;
+  font-size: 0.9rem;
+  display: block;
+  padding: 4px 0;
+}
+
+.performance-table .td-module .module-name {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+  display: block;
+  padding: 4px 0;
+}
+
+.performance-table .td-issue .issue-type {
+  font-weight: 500;
+  color: #374151;
+  font-size: 0.875rem;
+  display: block;
+  padding: 4px 0;
+}
+
+/* Performance table column styling */
+.performance-table .th-product,
+.performance-table .td-product {
+  min-width: 120px;
+  
+  width: 15%;
+}
+
+.performance-table .th-module,
+.performance-table .td-module {
+  min-width: 120px;
+  width: 15%;
+}
+
+.performance-table .th-issue,
+.performance-table .td-issue {
+  min-width: 150px;
+  width: 20%;
+}
+
+.performance-table .th-response-rate,
+.performance-table .td-response-rate {
+  min-width: 120px;
+  width: 18%;
+  text-align: center;
+}
+
+.performance-table .th-resolution-rate,
+.performance-table .td-resolution-rate {
+  min-width: 120px;
+  width: 18%;
+  text-align: center;
+}
+
+.performance-table .th-overall-rate,
+.performance-table .td-overall-rate {
+  min-width: 120px;
+  width: 14%;
+  text-align: center;
+}
+
 .performance-rate {
   display: inline-block;
   padding: 6px 12px;
@@ -3759,11 +3850,13 @@ performance rates for response time, resolution time, and overall performance.
 .performance-rate.within-limit {
   background-color: #d1fae5;
   color: #065f46;
+  padding: 2px;
   border: 1px solid #a7f3d0;
 }
 
 .performance-rate.exceeded {
   background-color: #fee2e2;
+  padding: 2px;
   color: #991b1b;
   border: 1px solid #fca5a5;
 }
@@ -3776,12 +3869,14 @@ performance rates for response time, resolution time, and overall performance.
 
 .performance-rate.overall.within-limit {
   background-color: #dbeafe;
+  padding: 2px;
   color: #1e40af;
   border: 1px solid #93c5fd;
 }
 
 .performance-rate.overall.exceeded {
   background-color: #fef3c7;
+  padding: 2px;
   color: #92400e;
   border: 1px solid #fde68a;
 }
@@ -3837,7 +3932,7 @@ performance rates for response time, resolution time, and overall performance.
 
 @media (max-width: 768px) {
   .performance-rates-table {
-    margin: 20px 0;
+    margin: 20px;
     border-radius: 8px;
   }
   
@@ -3845,8 +3940,18 @@ performance rates for response time, resolution time, and overall performance.
     padding: 20px;
   }
   
+  .performance-rates-table .table-header-content {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
   .performance-rates-table .table-header h3 {
     font-size: 1.25rem;
+  }
+  
+  .performance-rates-table .product-filter-dropdown {
+    min-width: 100%;
   }
   
   .performance-table {

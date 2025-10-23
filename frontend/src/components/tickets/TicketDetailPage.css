@@ -376,6 +376,7 @@
   display: flex;
   flex-direction: column;
   gap: 5px;
+  margin-right: 10px;
 }
 
 .customer-email {
@@ -432,14 +433,14 @@
 
 /* Ticket Details Container */
 .ticket-details-container {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background-color: #ffffff !important;
+  background: #ffffff !important;
   border-radius: 12px;
+  border: none !important;
   padding: -10px;
   margin-bottom: 25px;
   margin-left: 1px;
   margin-right: 1px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* Ticket Details Grid */
@@ -822,7 +823,7 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
 
 .reply-form {
   padding: 24px;
-  background: #f9fafb;
+  background: transparent;
   border-radius: 12px;
   margin: 8px;
 }
@@ -863,9 +864,9 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
 }
 
 .reply-send-btn {
-  background: #d1d5db;
-  color: #374151;
-  border: none;
+  background: #3b82f6;
+  color: white;
+  border: 1px solid #2563eb;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -876,13 +877,16 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
 }
 
 .reply-send-btn:hover:not(:disabled) {
-  background: #9ca3af;
-  color: white;
+  background: #2563eb;
+  border-color: #1d4ed8;
   transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .reply-send-btn:disabled {
-  background: #9ca3af;
+  background: #bfdbfe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
   cursor: not-allowed;
   transform: none;
 }
@@ -922,7 +926,7 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
   box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
   border: 1px solid #e5e7eb;
   overflow: hidden;
-  margin-bottom: 24px;
+  margin-bottom: -24px;
   width: 100%;
   max-width: 100%;
 }
@@ -932,10 +936,14 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
   background:none !important;
   color: rgb(102, 96, 96);
   padding: 3px;
+  margin-left:10px;
+  margin-right:10px;
   display: flex;
   justify-content: space-between;
   align-items: center;
-  border-bottom: 1px solid rgba(36, 20, 20, 0.2);
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
   position: relative;
   border-radius: 10px;
 }
@@ -947,7 +955,8 @@ div.ticket-details-grid > div.detail-item > span.detail-value.module-badge {
 
 /* Also override the main ticket card background specifically for header area */
 .ticket-detail-page .ticket-card {
-  background:none !important;
+  background-color:white !important;
+  margin-bottom: -24px;
 }
 
 /* ULTIMATE OVERRIDE - Force the main page background to be transparent */
@@ -970,8 +979,10 @@ div.ticket-detail-page {
 /* Override AgentDashboard.css - Allow card styling for customer info */
 .ticket-detail-page .customer-info {
   background: #ffffff !important;
-  border: 1px solid #e5e7eb !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
+ 
+  margin-left: 0px !important;
+  margin-right: 10px !important;
 }
 
 /* Also remove any background from customer name and email containers */
@@ -985,6 +996,16 @@ div.ticket-detail-page {
 /* Override AgentDashboard.css - Make ticket header section visible */
 .ticket-detail-page .ticket-header-section {
   display: flex !important;
+  border-top: none !important;
+  border-left: none !important;
+  border-right: none !important;
+}
+
+/* Force customer-info margin-right override */
+.ticket-detail-page .ticket-body-section .customer-info {
+  margin-right: 2px !important;
+  width: calc(100% - 20px) !important;
+  max-width: calc(100% - 20px) !important;
 }
 
 /* Hide the red cross close button completely */
@@ -1056,7 +1077,7 @@ div.ticket-detail-page {
 
 /* BODY SECTION - Customer Data and Issue Details */
 .ticket-body-section {
-  padding: 0px 12px 4px 12px;
+  padding: 0px 12px 4px 0px;
   background: white;
 }
 
@@ -1079,19 +1100,19 @@ div.ticket-detail-page {
   margin-bottom: 2px;
   margin-top: -55px;
   padding: -10px;
-  margin-left: 1px;
-  margin-right: 1px !important;
   background: #ffffff !important;
   border-radius: 12px;
-  border: 1px solid #e5e7eb;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: none;
+ 
+  margin-right: 10px;
 }
 
 .customer-name,
 .customer-email {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Customer Name Label - Independent */
@@ -1102,7 +1123,7 @@ div.ticket-detail-page {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   position: relative;
-  margin-left:-100px;
+  margin-left: 0px;
   display: inline-block;
 }
 
@@ -1110,7 +1131,7 @@ div.ticket-detail-page {
 .customer-email .label {
   font-size: 0.85rem;
   color: #64748b;
-  margin-left: -220px;
+  margin-left: 0px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   position: relative;
@@ -1122,8 +1143,8 @@ div.ticket-detail-page {
   font-size: 1rem;
   font-weight: normal;
   color: #1f2937;
-  padding-left: 90px;
-  margin-top: -29px;
+  padding-left: 0px;
+  margin-top: 0px;
   background: transparent;
   position: relative;
   display: inline-block;
@@ -1134,9 +1155,8 @@ div.ticket-detail-page {
   font-size: 1rem;
   font-weight: normal;
   color: #1f2937;
-  padding-left: 85px;
-  margin-top: -29px;
-  margin-left: -0.9cm;
+  padding-left: 0px;
+  margin-top: 0px;
   background: transparent;
   position: relative;
   display: inline-block;
@@ -1154,6 +1174,7 @@ div.ticket-detail-page {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   margin-bottom: 8px;
+  margin-left: 0px;
 }
 
 .description-text {
@@ -1234,12 +1255,13 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 
 /* FOOTER SECTION - Reply, Chat, and Actions */
 .ticket-footer-section {
-  background: #f8fafc;
+  background: white;
   padding: 24px;
   border-top: none;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  margin-bottom: 10px;
 }
 
 /* Reply Container - Full Width Above Other Elements */
@@ -1372,6 +1394,26 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
   transform: translateY(-1px);
 }
 
+.in-progress-btn {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  color: white;
+  border: none;
+  padding: 7px 10px;
+  border-radius: 8px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+  white-space: nowrap;
+}
+
+.in-progress-btn:hover {
+  background: linear-gradient(135deg, #2563eb, #1e40af);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
+}
+
 .reopen-btn {
   background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%) !important;
   color: white !important;
@@ -1399,7 +1441,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 @media (max-width: 768px) {
   .ticket-footer-section {
     padding: 20px;
-    gap: 16px;
+    gap: 10px;
   }
   
   .footer-actions-row {
@@ -1567,7 +1609,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
     grid-template-columns: 1fr;
     gap: 16px;
     padding: 12px;
-    margin-right: 5px !important;
+    margin-right: 10px;
   }
 
   .ticket-details-grid {
@@ -1592,7 +1634,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
   }
 
   .ticket-footer-section {
-    padding: 16px;
+    padding: 10px;
   }
 
   .footer-actions-row {
@@ -1646,7 +1688,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
   .customer-info {
     grid-template-columns: 1fr;
     gap: 16px;
-    margin-right: 5px !important;
+    margin-right: 10px;
   }
 
   .ticket-details-grid {
@@ -1758,12 +1800,9 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 
 .aws-chat-section.escalated .aws-chat-container {
   border: 3px solid #777171;
-  box-shadow: 0 8px 32px rgba(240, 211, 211, 0.4);
+  
 }
 
-.aws-chat-section.escalated .aws-chat-header {
-  border-bottom: 2px solid #a19c9c;
-}
 
 .aws-chat-section.escalated .aws-chat-header h3 {
   color: black;
@@ -1780,7 +1819,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 
 .aws-chat-section.closed .aws-chat-container {
   border: 3px solid #ccd0cf;
-  box-shadow: 0 8px 32px rgba(196, 223, 214, 0.4);
+  
   width: 85%;
   max-width: 800px;
   height: 85vh;
@@ -1831,7 +1870,6 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 
 .aws-chat-section.closed .aws-message-block {
   display: flex;
-  border-bottom: 1px solid #f0f0f0;
   min-height: 60px;
 }
 
@@ -1857,8 +1895,7 @@ div.ticket-details-grid > div.detail-item:nth-child(6) > span.detail-value {
 
 .aws-chat-section.closed .aws-chat-input-section {
   padding: 4px 8px;
-  background: #f8f9fa;
-  border-top: 1px solid #e9ecef;
+  background: white;
 }
 
 /* Prevent background scrolling when chat modal is open */
@@ -2027,19 +2064,19 @@ body:has(.aws-chat-section) {
   font-size: 14px;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: none;
   white-space: nowrap;
   min-width: 120px;
 }
 
 .aws-send-reply-btn:hover {
   background: #0056b3;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.3);
+  transform: none;
+  box-shadow: none;
 }
 
 .aws-send-reply-btn:active {
-  transform: translateY(0);
+  transform: none;
 }
 
 /* Responsive Design */
@@ -2072,4 +2109,58 @@ body:has(.aws-chat-section) {
   .aws-send-reply-btn {
     align-self: flex-end;
   }
+}
+
+/* --- Ticket Status Change Notification Popup --- */
+.status-notification-popup {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 9999;
+  background: white;
+  color: #333;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border: 1px solid #e5e7eb;
+  animation: slideInFromRight 0.5s ease-out, fadeOut 0.5s ease-in 2.5s forwards;
+  max-width: 300px;
+  min-width: 250px;
+}
+
+.status-notification-popup .notification-content {
+  display: flex;
+  align-items: center;
+  padding: 16px;
+  gap: 12px;
+}
+
+.status-notification-popup .notification-icon {
+  font-size: 24px;
+  flex-shrink: 0;
+}
+
+.status-notification-popup .notification-text {
+  flex: 1;
+}
+
+.status-notification-popup .notification-text h3 {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.status-notification-popup .notification-close-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  color: #6b7280;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: background-color 0.2s ease;
+}
+
+.status-notification-popup .notification-close-btn:hover {
+  background-color: #f3f4f6;
 }

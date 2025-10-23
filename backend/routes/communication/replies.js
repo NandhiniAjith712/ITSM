@@ -200,6 +200,86 @@ router.delete('/:id', async (req, res) => {
   }
 });
 
+// POST /api/replies/dashboard - Add a reply from dashboard (manager/agent interface)
+router.post('/dashboard', async (req, res) => {
+  try {
+    const { ticket_id, message, agent_id } = req.body;
+    
+    if (!ticket_id || !message) {
+      return res.status(400).json({
+        success: false,
+        message: 'ticket_id and message are required'
+      });
+    }
+    
+    // Check if ticket exists and get ticket details
+    const [tickets] = await pool.execute(
+      'SELECT id, name, mobile, issue_title FROM tickets WHERE id = ?',
+      [ticket_id]
+    );
+    
+    if (tickets.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Ticket not found'
+      });
+    }
+    
+    const ticket = tickets[0];
+    
+    // Get agent name from agent_id if provided
+    let agentName = 'Support Agent';
+    if (agent_id) {
+      const [agents] = await pool.execute(
+        'SELECT name FROM agents WHERE id = ?',
+        [agent_id]
+      );
+      if (agents.length > 0) {
+        agentName = agents[0].name;
+      }
+    }
+    
+    // Insert agent reply
+    const [result] = await pool.execute(
+      'INSERT INTO replies (ticket_id, agent_name, message, is_customer_reply) VALUES (?, ?, ?, FALSE)',
+      [ticket_id, agentName, message]
+    );
+    
+    const [replies] = await pool.execute(
+      'SELECT * FROM replies WHERE id = ?',
+      [result.insertId]
+    );
+    
+    const replyData = replies[0];
+    
+    // Send WhatsApp notification if mobile number exists
+    let whatsappSent = false;
+    if (ticket.mobile) {
+      try {
+        await sendAgentReplyNotification(ticket, agentName, message);
+        whatsappSent = true;
+        console.log(`✅ WhatsApp notification sent to ${ticket.mobile} for ticket #${ticket_id}`);
+      } catch (whatsappError) {
+        console.error('⚠️ Error sending WhatsApp notification:', whatsappError);
+        // Don't fail the reply if WhatsApp fails
+      }
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Reply added successfully',
+      data: replyData,
+      whatsappSent: whatsappSent
+    });
+  } catch (error) {
+    console.error('Error adding dashboard reply:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to add reply'
+    });
+  }
+});
+
 // GET /api/replies/user/:userId - Get all replies for all tickets of a user
 router.get('/user/:userId', async (req, res) => {
   try {

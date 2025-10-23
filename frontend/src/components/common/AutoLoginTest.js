@@ -75,7 +75,6 @@ const AutoLoginTest = () => {
             placeholder="Enter phone"
           />
         </div>
-        
         <button onClick={handleTestAutoLogin} className="test-btn">
           🚀 Test Auto-Login
         </button>

@@ -998,9 +998,9 @@
 }
 
 .reply-send-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #3b82f6;
   color: white;
-  border: none;
+  border: 1px solid #2563eb;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -1011,21 +1011,24 @@
 }
 
 .reply-send-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #2563eb;
+  border-color: #1d4ed8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .reply-send-btn:disabled {
-  background: #9ca3af;
+  background: #bfdbfe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
   cursor: not-allowed;
   transform: none;
 }
 
 .reply-cancel-btn {
-  background: #6b7280;
-  color: white;
-  border: none;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -1036,14 +1039,35 @@
 }
 
 .reply-cancel-btn:hover:not(:disabled) {
-  background: #4b5563;
+  background: #f8fafc;
+  border-color: #9ca3af;
   transform: translateY(-1px);
+}
+
+.reply-cancel-btn:active {
+  background: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+  transform: translateY(0);
 }
 
 .reply-cancel-btn:disabled {
   background: #9ca3af;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Toggled button states */
+.reply-send-btn-toggled {
+  background: white !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.reply-cancel-btn-toggled {
+  background: #3b82f6 !important;
+  color: white !important;
+  border: 1px solid #2563eb !important;
 }
 
 /* Ticket Reply Section */

@@ -24,7 +24,7 @@ const testConnection = async () => {
     console.log('✅ Database connected successfully');
     connection.release();
   } catch (error) {
-    console.error('❌ Database connection failed:', error.message);
+    console.error(' Database connection failed:', error.message);
     process.exit(1);
   }
 };
@@ -603,7 +603,7 @@ const initializeDatabase = async () => {
     console.log('✅ Database tables and views initialized successfully');
     connection.release();
   } catch (error) {
-    console.error('❌ Database initialization failed:', error.message);
+    console.error(' Database initialization failed:', error.message);
     throw error;
   }
 };

@@ -24,13 +24,15 @@ const BusinessDashboard = () => {
 
   // New state for agent management
   const [agents, setAgents] = useState([]);
+  const [managers, setManagers] = useState([]);
   const [showAddAgent, setShowAddAgent] = useState(false);
   const [editingAgent, setEditingAgent] = useState(null);
 
   const [newAgent, setNewAgent] = useState({
     name: '',
     email: '',
-    role: 'support_executive'
+    role: 'support_executive',
+    manager_id: ''
   });
 
   // New state for SLA management
@@ -63,6 +65,7 @@ const BusinessDashboard = () => {
 
   // Performance Rate state
   const [performanceRates, setPerformanceRates] = useState([]);
+  const [selectedProductFilter, setSelectedProductFilter] = useState('');
 
   // Current user state
   const [currentUser, setCurrentUser] = useState(null);
@@ -188,6 +191,23 @@ const BusinessDashboard = () => {
     }
   };
 
+  // Fetch all managers
+  const fetchManagers = async () => {
+    try {
+      const managersRes = await fetch(`${API_BASE}/agents`);
+      const managersJson = await managersRes.json();
+
+      // Filter for support_manager role from the agents table
+      const allAgents = managersJson.success ? managersJson.data : [];
+      const managers = allAgents.filter(agent => agent.role === 'support_manager');
+      
+      const sortedManagers = managers.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      setManagers(sortedManagers);
+    } catch (error) {
+      console.error('Error fetching managers:', error);
+    }
+  };
+
   // Add new agent
   const handleAddAgent = async (e) => {
     e.preventDefault();
@@ -210,7 +230,8 @@ const BusinessDashboard = () => {
       const agentData = {
         name: newAgent.name.trim(),
         email: newAgent.email.trim(),
-        role: newAgent.role || 'support_executive'
+        role: newAgent.role || 'support_executive',
+        manager_id: newAgent.manager_id || null
       };
       
       console.log('📤 Sending agent data:', agentData);
@@ -233,7 +254,8 @@ const BusinessDashboard = () => {
         setNewAgent({
           name: '',
           email: '',
-          role: 'support_executive'
+          role: 'support_executive',
+          manager_id: ''
         });
         fetchAgents(); // Refresh the agents list
         
@@ -433,6 +455,7 @@ const BusinessDashboard = () => {
       try {
         await fetchProducts();
         await fetchAgents();
+        await fetchManagers();
       } catch (error) {
         console.error('❌ Error initializing dashboard:', error);
         setError('Failed to initialize dashboard');
@@ -522,13 +545,21 @@ const BusinessDashboard = () => {
       if (data.success) {
         console.log('📊 Performance Rates fetched:', data.data);
         console.log('📊 Performance Rates count:', data.data ? data.data.length : 0);
+        console.log('📊 Performance Rates details:', data.data.map(rate => ({
+          id: rate.id,
+          product: rate.product_name,
+          module: rate.module_name,
+          response_rate: rate.response_time_performance_rate,
+          resolution_rate: rate.resolution_time_performance_rate,
+          overall_rate: rate.overall_performance_rate
+        })));
         setPerformanceRates(data.data || []);
       } else {
-        console.error('❌ Failed to fetch performance rates:', data.message);
+        console.error(' Failed to fetch performance rates:', data.message);
         setPerformanceRates([]);
       }
     } catch (error) {
-      console.error('❌ Error fetching performance rates:', error);
+      console.error('Error fetching performance rates:', error);
       setPerformanceRates([]);
     }
   };
@@ -1117,7 +1148,7 @@ const BusinessDashboard = () => {
             onClick={() => setActiveTab('products')}
           >
             <span className="tab-icon">📦</span>
-            Products & SLA
+            Products
           </button>
           <button 
             className={`tab-new ${activeTab === 'sla' ? 'active' : ''}`}
@@ -2006,8 +2037,27 @@ const BusinessDashboard = () => {
               {/* Performance Rate Table */}
               <div className="performance-rates-table">
                 <div className="table-header">
-                  <h3>📊 SLA Performance Rates</h3>
-                  <p className="table-description">Performance rates calculated based on actual response and resolution times</p>
+                  <div className="table-header-content">
+                    <h3>📊 SLA Performance Rates</h3>
+                    <div className="table-header-actions">
+                      <select 
+                        value={selectedProductFilter}
+                        onChange={(e) => {
+                          console.log('Product filter changed to:', e.target.value);
+                          console.log('Available products:', products);
+                          setSelectedProductFilter(e.target.value);
+                        }}
+                        className="product-filter-dropdown"
+                      >
+                        <option value="">All Products</option>
+                        {products.map(product => (
+                          <option key={product.id} value={product.id}>
+                            {product.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
                 </div>
                 
                 
@@ -2033,7 +2083,17 @@ const BusinessDashboard = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {performanceRates.map(rate => (
+                        {performanceRates
+                          .filter(rate => {
+                            if (!selectedProductFilter) return true;
+                            // Debug: log the rate data to see available fields
+                            console.log('Rate data:', rate);
+                            console.log('Selected filter:', selectedProductFilter);
+                            // Try different possible field names
+                            return rate.product_id == selectedProductFilter || 
+                                   rate.product_name === products.find(p => p.id == selectedProductFilter)?.name;
+                          })
+                          .map(rate => (
                           <tr key={rate.id} className="performance-row">
                             <td className="td-product">
                               <span className="product-name">{rate.product_name || 'N/A'}</span>
@@ -2161,7 +2221,8 @@ const BusinessDashboard = () => {
                       setNewAgent({
                         name: '',
                         email: '',
-                        role: 'support_executive'
+                        role: 'support_executive',
+                        manager_id: ''
                       });
                       setShowAddAgent(false);
                     }}
@@ -2205,18 +2266,41 @@ const BusinessDashboard = () => {
                     </div>
                   </div>
 
-                  <div className="agent-form-group">
-                    <label>Role</label>
-                    <select
-                      value={newAgent.role || 'support_executive'}
-                      onChange={(e) => setNewAgent({...newAgent, role: e.target.value})}
-                      className="form-select"
-                    >
-                      <option value="support_executive">Support Executive</option>
-                      <option value="support_manager">Support Manager</option>
-                      <option value="ceo">CEO</option>
-                    </select>
-                    <small>Select the role for this agent</small>
+                  <div className="agent-form-row">
+                    <div className="agent-form-group">
+                      <label>Role</label>
+                      <select
+                        value={newAgent.role || 'support_executive'}
+                        onChange={(e) => setNewAgent({...newAgent, role: e.target.value})}
+                        className="form-select"
+                      >
+                        <option value="support_executive">Support Executive</option>
+                        <option value="support_manager">Support Manager</option>
+                        <option value="ceo">CEO</option>
+                      </select>
+                    </div>
+
+                    {newAgent.role === 'support_executive' && (
+                      <div className="agent-form-group">
+                        <label>Assign to Manager</label>
+                        <select
+                          value={newAgent.manager_id || ''}
+                          onChange={(e) => setNewAgent({...newAgent, manager_id: e.target.value})}
+                          className="form-select"
+                        >
+                          <option value="">Select a Manager</option>
+                          {managers.length > 0 ? (
+                            managers.map(manager => (
+                              <option key={manager.id} value={manager.id}>
+                                {manager.name} ({manager.email})
+                              </option>
+                            ))
+                          ) : (
+                            <option value="" disabled>No managers found</option>
+                          )}
+                        </select>
+                      </div>
+                    )}
                   </div>
 
                   <div className="agent-form-actions">
@@ -2230,7 +2314,8 @@ const BusinessDashboard = () => {
                         setNewAgent({
                           name: '',
                           email: '',
-                          role: 'support_executive'
+                          role: 'support_executive',
+                          manager_id: ''
                         });
                         setShowAddAgent(false);
                       }}

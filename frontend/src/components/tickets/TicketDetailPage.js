@@ -25,6 +25,11 @@ const TicketDetailPage = () => {
   // Chat support visibility state
   const [showChatSupport, setShowChatSupport] = useState(false);
   
+  // Status change notification state
+  const [showStatusNotification, setShowStatusNotification] = useState(false);
+  const [statusNotificationMessage, setStatusNotificationMessage] = useState('');
+  const [statusNotificationType, setStatusNotificationType] = useState('');
+  
   useEffect(() => {
     if (ticketId) {
       fetchTicketDetails();
@@ -300,6 +305,9 @@ const TicketDetailPage = () => {
       if (response.ok) {
         console.log('✅ Ticket resolved successfully');
         fetchTicketDetails();
+        
+        // Show status change notification
+        showStatusChangeNotification('closed');
       } else {
         console.error('Failed to resolve ticket');
         alert('Failed to resolve ticket. Please try again.');
@@ -333,6 +341,9 @@ const TicketDetailPage = () => {
       if (response.ok) {
         console.log('✅ Ticket escalated successfully');
         fetchTicketDetails();
+        
+        // Show status change notification
+        showStatusChangeNotification('escalated');
       } else {
         console.error('Failed to escalate ticket');
         alert('Failed to escalate ticket. Please try again.');
@@ -340,6 +351,42 @@ const TicketDetailPage = () => {
     } catch (error) {
       console.error('Error escalating ticket:', error);
       alert('Error escalating ticket. Please try again.');
+    }
+  };
+
+  const handleInProgress = async () => {
+    try {
+      // Get authentication token from localStorage
+      const token = localStorage.getItem('access_token') || localStorage.getItem('userToken');
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      // Add authorization header if token exists
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      const response = await fetch(`http://localhost:5000/api/tickets/${ticketId}/status`, {
+        method: 'PUT',
+        headers: headers,
+        body: JSON.stringify({ status: 'in_progress' })
+      });
+
+      if (response.ok) {
+        console.log('✅ Ticket moved to in progress successfully');
+        fetchTicketDetails();
+        
+        // Show status change notification
+        showStatusChangeNotification('in_progress');
+      } else {
+        console.error('Failed to move ticket to in progress');
+        alert('Failed to move ticket to in progress. Please try again.');
+      }
+    } catch (error) {
+      console.error('Error moving ticket to in progress:', error);
+      alert('Error moving ticket to in progress. Please try again.');
     }
   };
 
@@ -366,6 +413,9 @@ const TicketDetailPage = () => {
       if (response.ok) {
         console.log('✅ Ticket reopened successfully');
         fetchTicketDetails();
+        
+        // Show status change notification
+        showStatusChangeNotification('reopened');
       } else {
         console.error('Failed to reopen ticket');
         alert('Failed to reopen ticket. Please try again.');
@@ -374,6 +424,52 @@ const TicketDetailPage = () => {
       console.error('Error reopening ticket:', error);
       alert('Error reopening ticket. Please try again.');
     }
+  };
+
+  // Function to show status change notification
+  const showStatusChangeNotification = (status) => {
+    let message = '';
+    let type = '';
+    
+    switch (status) {
+      case 'in_progress':
+        message = 'Ticket In Progress';
+        type = 'in_progress';
+        break;
+      case 'closed':
+        message = 'Ticket Closed';
+        type = 'closed';
+        break;
+      case 'escalated':
+        message = 'Ticket Escalated';
+        type = 'escalated';
+        break;
+      case 'reopened':
+        message = 'Ticket Reopened';
+        type = 'reopened';
+        break;
+      default:
+        message = `Ticket ${status}`;
+        type = status;
+    }
+    
+    setStatusNotificationMessage(message);
+    setStatusNotificationType(type);
+    setShowStatusNotification(true);
+    
+    // Auto-hide after 3 seconds
+    setTimeout(() => {
+      setShowStatusNotification(false);
+      setStatusNotificationMessage('');
+      setStatusNotificationType('');
+    }, 3000);
+  };
+
+  // Function to close the status notification
+  const closeStatusNotification = () => {
+    setShowStatusNotification(false);
+    setStatusNotificationMessage('');
+    setStatusNotificationType('');
   };
 
   // Assign equally when unassigned
@@ -448,6 +544,29 @@ const TicketDetailPage = () => {
 
   return (
     <div className="ticket-detail-page">
+      {/* Status Change Notification Popup */}
+      {showStatusNotification && (
+        <div className="status-notification-popup">
+          <div className="notification-content">
+            <div className="notification-icon">
+              {statusNotificationType === 'in_progress' && '⚡'}
+              {statusNotificationType === 'closed' && '✅'}
+              {statusNotificationType === 'escalated' && '🚨'}
+              {statusNotificationType === 'reopened' && '🔄'}
+            </div>
+            <div className="notification-text">
+              <h3>{statusNotificationMessage}</h3>
+            </div>
+            <button 
+              className="notification-close-btn"
+              onClick={closeStatusNotification}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Back Button and Chat Support Button */}
       <div className="back-section">
         <button onClick={() => navigate(-1)} className="back-btn">
@@ -654,6 +773,11 @@ const TicketDetailPage = () => {
           <div className="footer-actions-row">
             {/* Action Buttons */}
             <div className="action-buttons">
+              {ticket.status === 'new' || ticket.status === 'escalated' ? (
+                <button onClick={handleInProgress} className="in-progress-btn">
+                  🔄 In Progress
+                </button>
+              ) : null}
               <button onClick={handleResolve} className="resolve-btn">
                 ✅ Resolve
               </button>

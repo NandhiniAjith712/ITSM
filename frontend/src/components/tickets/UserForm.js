@@ -737,30 +737,6 @@ const UserForm = ({ user, onSubmit, onClose }) => {
                  <div style={{ fontWeight: '600', fontSize: '16px', color: '#495057', marginBottom: '12px' }}>Quick Test</div>
                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                    <a 
-                     href={createAutoLoginUrl('test@example.com', 'ProjectX', '1234567890')}
-                     target="_blank"
-                     rel="noopener noreferrer"
-                     style={{ 
-                       color: '#007bff', 
-                       textDecoration: 'none',
-                       background: '#e3f2fd',
-                       padding: '8px 16px',
-                       borderRadius: '6px',
-                       fontSize: '14px',
-                       display: 'inline-block',
-                       border: '1px solid #bbdefb',
-                       transition: 'all 0.2s ease'
-                     }}
-                     onMouseEnter={(e) => {
-                       e.target.style.background = '#bbdefb';
-                     }}
-                     onMouseLeave={(e) => {
-                       e.target.style.background = '#e3f2fd';
-                     }}
-                   >
-                     Test ProjectX
-                   </a>
-                   <a 
                      href={createAutoLoginUrl('test@example.com', 'GRC', '9876543210')}
                      target="_blank"
                      rel="noopener noreferrer"
@@ -782,7 +758,7 @@ const UserForm = ({ user, onSubmit, onClose }) => {
                        e.target.style.background = '#e3f2fd';
                      }}
                    >
-                     Test GRC
+                     GRC Autologin
                    </a>
                  </div>
                </div>

@@ -246,7 +246,7 @@ const practicalDatabaseOptimization = async () => {
         }
         
       } catch (e) {
-        console.log(`   ❌ Error analyzing ${tableName}: ${e.message}`);
+        console.log(`    Error analyzing ${tableName}: ${e.message}`);
       }
     }
     
@@ -322,7 +322,7 @@ const practicalDatabaseOptimization = async () => {
     }
     
   } catch (error) {
-    console.error('❌ Practical database optimization analysis failed:', error.message);
+    console.error(' Practical database optimization analysis failed:', error.message);
   } finally {
     if (connection) {
       await connection.end();

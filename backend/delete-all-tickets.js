@@ -1,11 +1,13 @@
 const mysql = require('mysql2/promise');
+require('dotenv').config({ path: './config.env' });
 
 // Database configuration
 const dbConfig = {
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'tick_system'
+  host: process.env.DB_HOST || 'localhost',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'root',
+  database: process.env.DB_NAME || 'tick_system',
+  port: process.env.DB_PORT || 3306
 };
 
 async function deleteAllTickets() {
@@ -105,14 +107,14 @@ async function deleteAllTickets() {
     console.log('✅ You can now test ticket creation and assignment functionality');
 
   } catch (error) {
-    console.error('❌ Error during deletion:', error);
+    console.error(' Error during deletion:', error);
     
     if (connection) {
       try {
         await connection.rollback();
         console.log('🔄 Transaction rolled back due to error');
       } catch (rollbackError) {
-        console.error('❌ Error rolling back transaction:', rollbackError);
+        console.error(' Error rolling back transaction:', rollbackError);
       }
     }
     
@@ -123,7 +125,7 @@ async function deleteAllTickets() {
         await connection.end();
         console.log('🔌 Database connection closed');
       } catch (closeError) {
-        console.error('❌ Error closing connection:', closeError);
+        console.error(' Error closing connection:', closeError);
       }
     }
   }

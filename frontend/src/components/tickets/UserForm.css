@@ -1,17 +1,9 @@
-.user-form-container {
-  min-height: 100vh;
-  background: linear-gradient(120deg, #f8fafc 0%, #e0e7ef 100%);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
+
 
 .form-card {
-  background: rgba(255,255,255,0.85);
+  background-color: white;
   backdrop-filter: blur(10px);
-  border-radius: 22px;
+  border-radius: 10px;
   box-shadow: 0 8px 32px 0 rgba(44,62,80,0.10);
   padding: 20px 50px 35px 50px;
   width: 100%;
@@ -36,6 +28,7 @@
   color: #000000;
   font-size: 1.5rem;
   font-weight: 700;
+  margin-top:25px;
   margin-bottom: 10px;
 }
 

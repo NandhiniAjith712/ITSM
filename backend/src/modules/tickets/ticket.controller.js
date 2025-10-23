@@ -15,7 +15,16 @@ class TicketController {
       }
 
       const userId = req.user?.userId || null;
-      const result = await ticketService.createTicket(req.body, userId);
+      
+      // Handle file upload
+      const ticketData = {
+        ...req.body,
+        attachmentName: req.file ? req.file.filename : null,
+        attachmentType: req.file ? req.file.mimetype : null,
+        attachment: req.file ? req.file.path : null
+      };
+
+      const result = await ticketService.createTicket(ticketData, userId);
 
       res.status(HTTP_STATUS.CREATED).json(result);
     } catch (error) {

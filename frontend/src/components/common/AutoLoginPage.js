@@ -133,8 +133,7 @@ const AutoLoginPage = ({ onLogin }) => {
     return (
       <div className="auto-login-container">
         <div className="auto-login-content">
-          <div className="error-icon">❌</div>
-          <h2>Auto-login failed</h2>
+          <h2><span className="cross-icon">✕</span> Auto-login failed</h2>
           <p className="error-message">{error}</p>
           <button 
             className="retry-button"
@@ -157,8 +156,7 @@ const AutoLoginPage = ({ onLogin }) => {
     return (
       <div className="auto-login-container">
         <div className="auto-login-content">
-          <div className="success-icon">✅</div>
-          <h2>Auto-login successful!</h2>
+          <h2><span className="success-icon">✅</span> Auto-login successful!</h2>
           <p>Welcome back, {email}!</p>
           <div className="auto-login-details">
             <p><strong>Product:</strong> {product}</p>

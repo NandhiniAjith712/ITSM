@@ -333,7 +333,7 @@
 
 .metric-value {
   font-size: 3rem;
-  font-weight: 900;
+  font-weight: 700;
   color: #000000;
   margin: 0 0 8px 0;
   line-height: 1;
@@ -350,8 +350,8 @@
 /* Quick Stats */
 .quick-stats {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)) !important;
+  gap: 24px;
   max-width: 1500px;
   width: fit-content;
   margin: 0 auto;
@@ -361,17 +361,19 @@
 .quick-stats .stat-card {
   background: #F6F9FF !important;
   background-color: #F6F9FF !important;
-  border: 1px solid #e3e4e6 !important;
-  border-radius: 15px !important;
-  padding: 20px !important;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #9ab2ca !important;
+  border-radius: 20px !important;
+  padding: 28px !important;
+  box-shadow: none !important;
   display: flex !important;
   flex-direction: column !important;
   align-items: center !important;
   justify-content: center !important;
   text-align: center !important;
   gap: 19px !important;
-  transition: transform 0.2s ease !important;
+  transition: transform 0.3s, box-shadow 0.3s !important;
+  position: relative !important;
+  overflow: hidden !important;
 }
 
 .quick-stats .stat-card:hover {
@@ -988,7 +990,7 @@
 }
 
 .department-status {
-  text-align: center;
+  text-align: left;
 }
 
 /* Department Status Badges - Scoped to departments section only */

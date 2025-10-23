@@ -1,4 +1,5 @@
 const mysql = require('mysql2/promise');
+require('dotenv').config({ path: './config.env' });
 
 async function fixDatabase() {
   let connection;
@@ -8,10 +9,11 @@ async function fixDatabase() {
     
     // Database connection
     connection = await mysql.createConnection({
-      host: 'localhost',
-      user: 'root',
-      password: 'root',
-      database: 'tick_system'
+      host: process.env.DB_HOST || 'localhost',
+      user: process.env.DB_USER || 'root',
+      password: process.env.DB_PASSWORD || 'root',
+      database: process.env.DB_NAME || 'tick_system',
+      port: process.env.DB_PORT || 3306
     });
     
     console.log('✅ Connected to database');
@@ -58,7 +60,7 @@ async function fixDatabase() {
     console.log('✅ You can now test the auto-login again');
     
   } catch (error) {
-    console.error('❌ Error fixing database:', error.message);
+    console.error(' Error fixing database:', error.message);
     
     if (error.code === 'ER_NO_SUCH_TABLE') {
       console.log('💡 Table "agents" does not exist. Creating it...');
@@ -69,7 +71,7 @@ async function fixDatabase() {
         await connection.execute('ALTER TABLE agents CHANGE COLUMN password_hash password_hash VARCHAR(255) DEFAULT NULL');
         console.log('✅ Alternative fix applied');
       } catch (altError) {
-        console.error('❌ Alternative fix also failed:', altError.message);
+        console.error(' Alternative fix also failed:', altError.message);
       }
     }
   } finally {

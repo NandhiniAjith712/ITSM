@@ -175,7 +175,7 @@ const BusinessDashboard = () => {
         
         alert(credentialsMessage);
       } else {
-        console.error('❌ Agent registration failed:', data);
+        console.error(' Agent registration failed:', data);
         
         // Show specific validation errors
         if (data.errors && data.errors.length > 0) {
@@ -217,7 +217,7 @@ const BusinessDashboard = () => {
         is_active: editingAgent.is_active
       };
       
-      console.log('📤 Sending updated agent data:', agentData);
+      console.log(' Sending updated agent data:', agentData);
       
       const response = await fetch(`${API_BASE}/agents/${editingAgent.id}`, {
         method: 'PUT',
@@ -230,14 +230,14 @@ const BusinessDashboard = () => {
       console.log('📡 Response status:', response.status);
       
       const data = await response.json();
-      console.log('📥 Response data:', data);
+      console.log(' Response data:', data);
       
       if (data.success) {
         setEditingAgent(null);
         fetchAgents(); // Refresh the agents list
-        alert('✅ Agent updated successfully!');
+        alert(' Agent updated successfully!');
       } else {
-        console.error('❌ Agent update failed:', data);
+        console.error(' Agent update failed:', data);
         
         // Show specific validation errors
         if (data.errors && data.errors.length > 0) {
@@ -258,7 +258,7 @@ const BusinessDashboard = () => {
     // Get agent details for better confirmation
     const agent = agents.find(a => a.id === agentId);
     if (!agent) {
-      alert('❌ Agent not found');
+      alert(' Agent not found');
       return;
     }
 
@@ -280,12 +280,12 @@ Type "DELETE" to confirm:`;
     const userInput = prompt(confirmMessage);
     
     if (userInput !== 'DELETE') {
-      console.log('❌ Agent deletion cancelled by user');
+      console.log(' Agent deletion cancelled by user');
       return;
     }
     
     try {
-      console.log('🗑️ Deleting agent with ID:', agentId);
+      console.log(' Deleting agent with ID:', agentId);
       
       const response = await fetch(`${API_BASE}/agents/${agentId}`, {
         method: 'DELETE',
@@ -297,22 +297,22 @@ Type "DELETE" to confirm:`;
       const data = await response.json();
       
       if (data.success) {
-        console.log('✅ Agent deleted successfully:', data.message);
+        console.log(' Agent deleted successfully:', data.message);
         
         // Show success message with details
-              const message = `✅ Agent "${agent.name}" deleted successfully!`;
+              const message = ` Agent "${agent.name}" deleted successfully!`;
         
         alert(message);
         
         // Refresh the agents list
         fetchAgents();
       } else {
-        console.error('❌ Failed to delete agent:', data.message);
-        alert('❌ Failed to delete agent: ' + data.message);
+        console.error(' Failed to delete agent:', data.message);
+        alert(' Failed to delete agent: ' + data.message);
       }
     } catch (error) {
-      console.error('❌ Error deleting agent:', error);
-      alert('❌ Error deleting agent. Please try again.');
+      console.error(' Error deleting agent:', error);
+      alert(' Error deleting agent. Please try again.');
     }
   };
 
@@ -336,7 +336,7 @@ Type "DELETE" to confirm:`;
       console.log('📦 Products data:', data);
       
       if (data.success) {
-        console.log(`✅ Found ${data.data.length} products`);
+        console.log(` Found ${data.data.length} products`);
         setProducts(data.data);
         setError(''); // Clear any previous errors
         // Auto-select the first product if none is selected
@@ -346,11 +346,11 @@ Type "DELETE" to confirm:`;
           fetchModules(data.data[0].id);
         }
       } else {
-        console.error('❌ API returned error:', data.message);
+        console.error(' API returned error:', data.message);
         setError(data.message || 'Failed to fetch products');
       }
     } catch (error) {
-      console.error('❌ Error fetching products:', error);
+      console.error(' Error fetching products:', error);
       setError('Failed to fetch products');
     }
   };
@@ -366,7 +366,7 @@ Type "DELETE" to confirm:`;
         await fetchProducts();
         await fetchAgents();
       } catch (error) {
-        console.error('❌ Error initializing dashboard:', error);
+        console.error(' Error initializing dashboard:', error);
         setError('Failed to initialize dashboard');
       } finally {
         setLoading(false); // Always set loading to false when done
@@ -388,16 +388,16 @@ Type "DELETE" to confirm:`;
       const data = await response.json();
       
       if (data.success) {
-        console.log(`✅ Found ${data.data.length} modules`);
+        console.log(` Found ${data.data.length} modules`);
         // Filter modules by the selected product
         const productModules = data.data.filter(module => module.product_id == productId);
         console.log(`🎯 Product ${productId} has ${productModules.length} modules`);
         setModules(productModules);
       } else {
-        console.error('❌ Failed to fetch modules:', data.message);
+        console.error(' Failed to fetch modules:', data.message);
       }
     } catch (error) {
-      console.error('❌ Error fetching modules:', error);
+      console.error(' Error fetching modules:', error);
     }
   };
 

@@ -27,6 +27,7 @@ const CEODashboard = ({ ceo }) => {
   const [activeTab, setActiveTab] = useState('executive');
   const [lastUpdated, setLastUpdated] = useState(new Date());
   const [error, setError] = useState('');
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const refreshIntervalRef = useRef(null);
   const [executiveMetrics, setExecutiveMetrics] = useState({
     totalTickets: 0,
@@ -145,6 +146,7 @@ const CEODashboard = ({ ceo }) => {
   const fetchExecutiveData = async (isRefresh = false) => {
     try {
       if (!isRefresh) setLoading(true);
+      if (isRefresh) setIsRefreshing(true);
       setError('');
       
       const headers = getAuthHeaders();
@@ -206,11 +208,17 @@ const CEODashboard = ({ ceo }) => {
       calculateExecutiveMetrics(ticketsData, departmentsList, agentsList);
       setLastUpdated(new Date());
       
+      // For refresh operations, keep the refreshing state for 2 seconds
+      if (isRefresh) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+      }
+      
     } catch (error) {
       console.error('Error fetching executive data:', error);
       setError(`Failed to load dashboard data: ${error.message}`);
     } finally {
       setLoading(false);
+      setIsRefreshing(false);
     }
   };
 
@@ -386,7 +394,13 @@ const CEODashboard = ({ ceo }) => {
             
           </div>
           <div className="header-actions">
-            <a href="/" className="user-form-link">🔄 Refresh</a>
+            <button 
+              className="action-button refresh-btn" 
+              onClick={() => fetchExecutiveData(true)}
+              disabled={isRefreshing}
+            >
+              {isRefreshing ? '🔄 Refreshing...' : '🔄 Refresh'}
+            </button>
             <button 
               className="logout-btn-new"
               onClick={handleLogout}
@@ -422,12 +436,12 @@ const CEODashboard = ({ ceo }) => {
               <div className="executive-metrics">
                 <div className="metric-card primary">
                   <h3>Total Support Tickets</h3>
-                  <div className="metric-value">{executiveMetrics.totalTickets}</div>
+                  <div className="metric-value">📊 {executiveMetrics.totalTickets}</div>
                   <div className="metric-trend">+12% from last month</div>
                 </div>
                 <div className="metric-card success">
                   <h3>Resolved Tickets</h3>
-                  <div className="metric-value">{executiveMetrics.resolvedTickets}</div>
+                  <div className="metric-value">✅ {executiveMetrics.resolvedTickets}</div>
                   <div className="metric-trend">
                     {executiveMetrics.totalTickets > 0 
                       ? Math.round((executiveMetrics.resolvedTickets / executiveMetrics.totalTickets) * 100)
@@ -436,12 +450,12 @@ const CEODashboard = ({ ceo }) => {
                 </div>
                 <div className="metric-card info">
                   <h3>Avg Resolution Time</h3>
-                  <div className="metric-value">{executiveMetrics.avgResolutionTime}h</div>
+                  <div className="metric-value">⏱️ {executiveMetrics.avgResolutionTime}h</div>
                   <div className="metric-trend">Target: 24h</div>
                 </div>
                 <div className="metric-card satisfaction">
                   <h3>Customer Satisfaction</h3>
-                  <div className="metric-value">{executiveMetrics.customerSatisfaction}/5</div>
+                  <div className="metric-value">😊 {executiveMetrics.customerSatisfaction}/5</div>
                   <div className="metric-trend">Target: 4.5/5</div>
                 </div>
               </div>
@@ -656,28 +670,7 @@ const CEODashboard = ({ ceo }) => {
 
           {activeTab === 'assignments' && (
             <div className="assignments-section">
-              
-              <div className="assignments-summary">
-                <div className="summary-cards">
-                  <div className="summary-card">
-                    <div className="summary-value">📋 {tickets.filter(t => t.assigned_to && t.status !== 'closed').length}</div>
-                    <h4>Total Active</h4>
-                  </div>
-                  <div className="summary-card">
-                    <div className="summary-value">🔴 {tickets.filter(t => !t.assigned_to && t.status !== 'closed').length}</div>
-                    <h4>Unassigned</h4>
-                  </div>
-                  <div className="summary-card">
-                    <div className="summary-value">⚡ {tickets.filter(t => t.status === 'in_progress').length}</div>
-                    <h4>In Progress</h4>
-                  </div>
-                  <div className="summary-card">
-                    <div className="summary-value">🆘 {tickets.filter(t => t.status === 'escalated').length}</div>
-                    <h4>Escalated</h4>
-                  </div>
-                </div>
-              </div>
-              
+              <h3>Total Active Assignments: {tickets.filter(t => t.assigned_to && t.status !== 'closed').length}</h3>
               <div className="assignments-table">
                 <table>
                   <thead>
@@ -747,8 +740,7 @@ const CEODashboard = ({ ceo }) => {
                   <tbody>
                     {sortAssignments(
                       tickets
-                        .filter(ticket => ticket.assigned_to && ticket.status !== 'closed')
-                        .slice(0, 20), // Show only first 20 for performance
+                        .filter(ticket => ticket.assigned_to && ticket.status !== 'closed'),
                       assignmentsSortField, 
                       assignmentsSortDirection
                     )
@@ -790,9 +782,9 @@ const CEODashboard = ({ ceo }) => {
                   </div>
                 )}
                 
-                {tickets.filter(t => t.assigned_to && t.status !== 'closed').length > 20 && (
+                {tickets.filter(t => t.assigned_to && t.status !== 'closed').length > 0 && (
                   <div className="table-footer">
-                    <p>Showing first 20 assignments. Total: {tickets.filter(t => t.assigned_to && t.status !== 'closed').length}</p>
+                    <p>Total Active Assignments: {tickets.filter(t => t.assigned_to && t.status !== 'closed').length}</p>
                   </div>
                 )}
               </div>
@@ -806,26 +798,54 @@ const CEODashboard = ({ ceo }) => {
                 <div className="trend-chart">
                   <h4>Ticket Volume Trends</h4>
                   <div className="chart-container">
-                    {executiveMetrics.monthlyTrends.map((month, index) => (
-                      <div key={index} className="month-bar">
-                        <div className="bar-label">{month.month}</div>
-                        <div className="bar-container">
-                          <div 
-                            className="bar total" 
-                            style={{ height: `${(month.tickets / Math.max(...executiveMetrics.monthlyTrends.map(m => m.tickets))) * 100}%` }}
-                          ></div>
-                          <div 
-                            className="bar resolved" 
-                            style={{ height: `${(month.resolved / Math.max(...executiveMetrics.monthlyTrends.map(m => m.tickets))) * 100}%` }}
-                          ></div>
+                    {executiveMetrics.monthlyTrends.map((month, index) => {
+                      const maxTickets = Math.max(...executiveMetrics.monthlyTrends.map(m => m.tickets), 1);
+                      const minTickets = Math.min(...executiveMetrics.monthlyTrends.map(m => m.tickets), 1);
+                      const maxResolved = Math.max(...executiveMetrics.monthlyTrends.map(m => m.resolved), 1);
+                      const minResolved = Math.min(...executiveMetrics.monthlyTrends.map(m => m.resolved), 1);
+                      
+                      // Dynamic scaling based on actual data range
+                      const ticketRange = maxTickets - minTickets;
+                      const resolvedRange = maxResolved - minResolved;
+                      
+                      // Calculate heights dynamically (15% to 85% range)
+                      const totalHeight = ticketRange > 0 ? 
+                        Math.max(15, 15 + ((month.tickets - minTickets) / ticketRange) * 70) : 50;
+                      const resolvedHeight = resolvedRange > 0 ? 
+                        Math.max(15, 15 + ((month.resolved - minResolved) / resolvedRange) * 70) : 50;
+                      
+                      console.log(`Month ${month.month}: tickets=${month.tickets}, resolved=${month.resolved}, totalHeight=${totalHeight}%, resolvedHeight=${resolvedHeight}%`);
+                      console.log(`Range: tickets(${minTickets}-${maxTickets}), resolved(${minResolved}-${maxResolved})`);
+                      
+                      return (
+                        <div key={index} className="month-bar">
+                          <div className="bar-label">{month.month}</div>
+                          <div className="bar-container">
+                            <div 
+                              className="bar total" 
+                              style={{ 
+                                height: `${totalHeight}%`,
+                                minHeight: '15px',
+                                backgroundColor: '#60a5fa'
+                              }}
+                            ></div>
+                            <div 
+                              className="bar resolved" 
+                              style={{ 
+                                height: `${resolvedHeight}%`,
+                                minHeight: '15px',
+                                backgroundColor: '#4ade80'
+                              }}
+                            ></div>
+                          </div>
+                          <div className="bar-value">{month.tickets}</div>
                         </div>
-                        <div className="bar-value">{month.tickets}</div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   <div className="chart-legend">
-                    <span className="legend-item"><span className="legend-color total"></span> Total</span>
-                    <span className="legend-item"><span className="legend-color resolved"></span> Resolved</span>
+                    <span className="legend-item"><span className="legend-color total" style={{backgroundColor: '#60a5fa'}}></span> Total</span>
+                    <span className="legend-item"><span className="legend-color resolved" style={{backgroundColor: '#4ade80'}}></span> Resolved</span>
                   </div>
                 </div>
 

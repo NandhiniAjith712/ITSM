@@ -152,6 +152,12 @@
   align-items: center;
 }
 
+/* Force button movement with transform */
+.table-section-title button {
+  position: relative;
+  left: -200px !important;
+}
+
 .table-section-title .section-title {
   margin: 0;
   font-size: 1.3rem;
@@ -196,6 +202,7 @@
 
 .submit-ticket-btn {
   transform: translateY(12px);
+  margin-left: 50px; 
 }
 
 .refresh-replies-btn {
@@ -336,7 +343,7 @@
   margin-top: 10px !important;
   margin-bottom: 0 !important;
   margin-left: 0 !important;
-  margin-right: 0 !important;
+  margin-right:0 !important;
 }
 
 .section-title {
@@ -349,7 +356,8 @@
 .section-subtitle {
   color: #6b7280;
   font-size: 0.95rem;
-  margin-top: 4px;
+  margin-top: 20px;
+  margin-left: 50px;
 }
 
 .current-sort-info {
@@ -1284,13 +1292,10 @@
 }
 
 .tickets-sort-header {
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 16px;
-  margin-bottom: 16px;
-  margin-left: 24px;
+  margin-bottom: 20px;
+  margin-left: 50px;
   margin-right: 24px;
+  padding-top:  20px;
 }
 
 .sort-controls {
@@ -1401,7 +1406,7 @@
   .tickets-sort-header {
     margin-left: 16px;
     margin-right: 16px;
-    padding: 12px;
+
   }
   
   .sort-controls {

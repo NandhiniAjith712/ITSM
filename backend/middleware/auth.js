@@ -53,8 +53,8 @@ const authenticateToken = async (req, res, next) => {
     
     console.log('🔍 Debug - JWT decoded:', decoded);
     
-    // Get user ID from token (handle both userId and id fields)
-    const userId = decoded.userId || decoded.id;
+    // Get user ID from token (handle userId, id, and agentId fields)
+    const userId = decoded.userId || decoded.id || decoded.agentId;
     
     if (!userId) {
       return res.status(401).json({

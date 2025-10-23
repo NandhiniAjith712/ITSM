@@ -60,7 +60,7 @@ async function assignTicketsToAdmin() {
     console.log(`\n🎉 Total tickets for agent #59: ${agent59Tickets.length}`);
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
   } finally {
     if (connection) {
       await connection.end();

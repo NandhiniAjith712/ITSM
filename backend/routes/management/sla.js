@@ -736,6 +736,9 @@ router.get('/performance-rates', async (req, res) => {
       ORDER BY p.name, m.name, sc.issue_name
     `);
     
+    console.log(`📊 Found ${configurations.length} SLA configurations`);
+    console.log('📊 Configurations:', configurations.map(c => ({ id: c.id, module_id: c.module_id, issue_name: c.issue_name })));
+    
     // Calculate performance rates for each configuration
     const performanceRates = await Promise.all(configurations.map(async config => {
       const slaResponseTimeMinutes = config.response_time_minutes;
@@ -750,38 +753,44 @@ router.get('/performance-rates', async (req, res) => {
           status
         FROM tickets 
         WHERE module_id = ? 
-        AND first_response_at IS NOT NULL
-        AND resolved_at IS NOT NULL
-        AND status = 'closed'
+        AND (first_response_at IS NOT NULL OR resolved_at IS NOT NULL)
       `, [config.module_id]);
+      
+      console.log(`🔍 Module ${config.module_id} (${config.issue_name}): Found ${tickets.length} tickets with timestamps`);
       
       let responseTimePerformanceRate = 0;
       let resolutionTimePerformanceRate = 0;
       
       if (tickets.length > 0) {
-        // Calculate average actual response time
-        const actualResponseTimes = tickets.map(ticket => {
-          const created = new Date(ticket.created_at);
-          const firstResponse = new Date(ticket.first_response_at);
-          return Math.floor((firstResponse - created) / (1000 * 60)); // Convert to minutes
-        });
+        // Calculate average actual response time (only for tickets with first_response_at)
+        const responseTickets = tickets.filter(ticket => ticket.first_response_at);
+        if (responseTickets.length > 0) {
+          const actualResponseTimes = responseTickets.map(ticket => {
+            const created = new Date(ticket.created_at);
+            const firstResponse = new Date(ticket.first_response_at);
+            return Math.floor((firstResponse - created) / (1000 * 60)); // Convert to minutes
+          });
+          
+          const avgActualResponseTime = actualResponseTimes.reduce((sum, time) => sum + time, 0) / actualResponseTimes.length;
+          
+          // Calculate Response Time Performance Rate: (Actual Response Time / SLA Response Time) × 100
+          responseTimePerformanceRate = (avgActualResponseTime / slaResponseTimeMinutes) * 100;
+        }
         
-        const avgActualResponseTime = actualResponseTimes.reduce((sum, time) => sum + time, 0) / actualResponseTimes.length;
-        
-        // Calculate average actual resolution time
-        const actualResolutionTimes = tickets.map(ticket => {
-          const created = new Date(ticket.created_at);
-          const resolved = new Date(ticket.resolved_at);
-          return Math.floor((resolved - created) / (1000 * 60)); // Convert to minutes
-        });
-        
-        const avgActualResolutionTime = actualResolutionTimes.reduce((sum, time) => sum + time, 0) / actualResolutionTimes.length;
-        
-        // Calculate Response Time Performance Rate (SLA Time / Actual Time) * 100, capped at 100%
-        responseTimePerformanceRate = Math.min(100, (slaResponseTimeMinutes / avgActualResponseTime) * 100);
-        
-        // Calculate Resolution Time Performance Rate (SLA Time / Actual Time) * 100, capped at 100%
-        resolutionTimePerformanceRate = Math.min(100, (slaResolutionTimeMinutes / avgActualResolutionTime) * 100);
+        // Calculate average actual resolution time (only for tickets with resolved_at)
+        const resolutionTickets = tickets.filter(ticket => ticket.resolved_at);
+        if (resolutionTickets.length > 0) {
+          const actualResolutionTimes = resolutionTickets.map(ticket => {
+            const created = new Date(ticket.created_at);
+            const resolved = new Date(ticket.resolved_at);
+            return Math.floor((resolved - created) / (1000 * 60)); // Convert to minutes
+          });
+          
+          const avgActualResolutionTime = actualResolutionTimes.reduce((sum, time) => sum + time, 0) / actualResolutionTimes.length;
+          
+          // Calculate Resolution Time Performance Rate: (Actual Resolution Time / SLA Resolution Time) × 100
+          resolutionTimePerformanceRate = (avgActualResolutionTime / slaResolutionTimeMinutes) * 100;
+        }
       } else {
         // No actual data available, show 0% or N/A
         responseTimePerformanceRate = 0;
@@ -859,23 +868,23 @@ router.post('/configurations', async (req, res) => {
       });
     }
 
-    // Check if module already has an SLA configuration
+    // Check if module already has an SLA configuration with the SAME issue type
     const [existingConfigs] = await pool.execute(`
-      SELECT id FROM sla_configurations WHERE module_id = ?
-    `, [module_id]);
+      SELECT id FROM sla_configurations WHERE module_id = ? AND issue_name = ?
+    `, [module_id, issue_name]);
 
     if (existingConfigs.length > 0) {
-      // Update existing configuration instead of creating duplicate
+      // Update existing configuration with same issue type
       const existingId = existingConfigs[0].id;
       const [updateResult] = await pool.execute(`
         UPDATE sla_configurations 
-        SET issue_name = ?, issue_description = ?, response_time_minutes = ?, resolution_time_minutes = ?, priority_level = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP 
+        SET issue_description = ?, response_time_minutes = ?, resolution_time_minutes = ?, priority_level = ?, is_active = ?, updated_at = CURRENT_TIMESTAMP 
         WHERE id = ?
-      `, [issue_name, issue_description || null, response_time_minutes, resolution_time_minutes, priority_level, is_active, existingId]);
+      `, [issue_description || null, response_time_minutes, resolution_time_minutes, priority_level, is_active, existingId]);
 
       res.json({
         success: true,
-        message: 'SLA configuration updated successfully (replaced existing configuration for this module)',
+        message: 'SLA configuration updated successfully (updated existing configuration for this issue type)',
         data: { id: existingId, issue_name, response_time_minutes, priority_level }
       });
     } else {

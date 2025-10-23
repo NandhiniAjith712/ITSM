@@ -38,7 +38,7 @@ async function sendWhatsAppMessage(phoneNumber, message) {
   try {
     // Check if WhatsApp is properly configured
     if (!WHATSAPP_ACCESS_TOKEN || WHATSAPP_ACCESS_TOKEN === 'YOUR_ACTUAL_NEW_TOKEN_FROM_META_DEVELOPER_CONSOLE' || !WHATSAPP_PHONE_NUMBER_ID) {
-      console.log('❌ WhatsApp API not configured');
+      console.log(' WhatsApp API not configured');
       console.log('💡 WhatsApp notifications are temporarily disabled until you get a valid access token');
       return null;
     }
@@ -63,11 +63,11 @@ async function sendWhatsAppMessage(phoneNumber, message) {
     return response.data;
   } catch (error) {
     if (error.code === 'ENOTFOUND') {
-      console.error('❌ Network error: Cannot reach Facebook Graph API. Check your internet connection.');
+      console.error(' Network error: Cannot reach Facebook Graph API. Check your internet connection.');
     } else if (error.code === 'ECONNABORTED') {
-      console.error('❌ Timeout error: Request took too long to complete.');
+      console.error(' Timeout error: Request took too long to complete.');
     } else {
-      console.error('❌ Error sending WhatsApp notification:', error.response?.data || error.message);
+      console.error(' Error sending WhatsApp notification:', error.response?.data || error.message);
     }
     return null;
   }

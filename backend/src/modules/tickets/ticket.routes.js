@@ -2,6 +2,7 @@ const express = require('express');
 const { body } = require('express-validator');
 const ticketController = require('./ticket.controller');
 const authMiddleware = require('../auth/auth.middleware');
+const upload = require('../../middleware/upload');
 
 const router = express.Router();
 
@@ -25,7 +26,7 @@ const assignTicketValidation = [
 ];
 
 // Public routes (no authentication required)
-router.post('/', createTicketValidation, ticketController.createTicket);
+router.post('/', upload.single('attachment'), createTicketValidation, ticketController.createTicket);
 
 // Protected routes (authentication required)
 router.get('/', authMiddleware.authenticateToken, ticketController.getTickets);

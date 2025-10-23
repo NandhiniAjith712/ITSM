@@ -41,10 +41,10 @@ const TicketAssignmentStats = () => {
         alert(`✅ ${data.message}`);
         fetchStats(); // Refresh stats
       } else {
-        alert(`❌ ${data.message}`);
+        alert(` ${data.message}`);
       }
     } catch (err) {
-      alert('❌ Failed to rebalance assignments');
+      alert(' Failed to rebalance assignments');
     } finally {
       setRebalancing(false);
     }

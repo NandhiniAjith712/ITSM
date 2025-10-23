@@ -243,7 +243,7 @@ router.get('/:id', async (req, res) => {
     
     // Get replies for this ticket
     const [replies] = await pool.execute(
-      'SELECT * FROM replies WHERE ticket_id = ? ORDER BY sent_at ASC',
+      'SELECT * FROM replies WHERE ticket_id = ? ORDER BY created_at ASC',
       [id]
     );
     
@@ -516,16 +516,37 @@ router.put('/:id/status', async (req, res) => {
     
     const ticket = tickets[0];
     
-    const [result] = await pool.execute(
-      'UPDATE tickets SET status = ? WHERE id = ?',
-      [status, id]
-    );
+    // Prepare update query with timestamp tracking
+    let updateQuery = 'UPDATE tickets SET status = ?';
+    let queryParams = [status];
+    
+    // Record first response time when status changes to 'in_progress'
+    if (status === 'in_progress' && ticket.status !== 'in_progress' && !ticket.first_response_at) {
+      updateQuery += ', first_response_at = ?';
+      queryParams.push(new Date());
+      console.log(`📝 Recording first response time for ticket ${id}: ${new Date().toISOString()}`);
+    }
+    
+    // Record resolution time when status changes to 'closed'
+    if (status === 'closed' && ticket.status !== 'closed' && !ticket.resolved_at) {
+      updateQuery += ', resolved_at = ?';
+      queryParams.push(new Date());
+      console.log(`📝 Recording resolution time for ticket ${id}: ${new Date().toISOString()}`);
+    }
+    
+    queryParams.push(id);
+    updateQuery += ' WHERE id = ?';
+    
+    const [result] = await pool.execute(updateQuery, queryParams);
     
     // Send WhatsApp notification for status update
     if (ticket.mobile) {
       const { sendStatusUpdateNotification } = require('../utils/whatsapp-notifications');
       await sendStatusUpdateNotification(ticket, status);
     }
+    
+    console.log(`✅ Status updated for ticket ${id}: ${status}`);
+    console.log(`📝 Timestamps: first_response_at=${queryParams.includes('first_response_at') ? 'SET' : 'NOT SET'}, resolved_at=${queryParams.includes('resolved_at') ? 'SET' : 'NOT SET'}`);
     
     res.json({
       success: true,
@@ -857,6 +878,128 @@ router.post('/:id/assign-equally', async (req, res) => {
     res.status(500).json({
       success: false,
       message: error.message || 'Failed to assign ticket'
+    });
+  }
+});
+
+// Add a new route for testing timestamp recording
+router.put('/:id/status-test', async (req, res) => {
+  try {
+    console.log('🔍 TEST ROUTE: /api/tickets/:id/status-test called');
+    const { id } = req.params;
+    const { status } = req.body;
+    
+    // Get current ticket status
+    const [tickets] = await pool.execute(
+      'SELECT status, first_response_at, resolved_at FROM tickets WHERE id = ?',
+      [id]
+    );
+    
+    if (tickets.length === 0) {
+      return res.status(404).json({ success: false, message: 'Ticket not found' });
+    }
+    
+    const ticket = tickets[0];
+    const now = new Date();
+    
+    // Prepare update query with timestamp tracking
+    let updateQuery = 'UPDATE tickets SET status = ?';
+    let queryParams = [status];
+    
+    // Record first response time when status changes to 'in_progress'
+    if (status === 'in_progress' && ticket.status !== 'in_progress' && !ticket.first_response_at) {
+      updateQuery += ', first_response_at = ?';
+      queryParams.push(now);
+      console.log(`📝 Recording first response time for ticket ${id}: ${now.toISOString()}`);
+    }
+    
+    // Record resolution time when status changes to 'closed'
+    if (status === 'closed' && ticket.status !== 'closed' && !ticket.resolved_at) {
+      updateQuery += ', resolved_at = ?';
+      queryParams.push(now);
+      console.log(`📝 Recording resolution time for ticket ${id}: ${now.toISOString()}`);
+    }
+    
+    queryParams.push(id);
+    updateQuery += ' WHERE id = ?';
+    
+    const [result] = await pool.execute(updateQuery, queryParams);
+    
+    console.log(`✅ TEST ROUTE: Status updated for ticket ${id}: ${status}`);
+    
+    res.json({
+      success: true,
+      message: 'Ticket status updated successfully (test route)'
+    });
+  } catch (error) {
+    console.error('Error in test route:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update ticket status'
+    });
+  }
+});
+
+// GET /api/tickets/agent/:agentId - Get tickets assigned to a specific agent
+router.get('/agent/:agentId', async (req, res) => {
+  try {
+    const { agentId } = req.params;
+    console.log(`🔍 Fetching tickets for agent ID: ${agentId}`);
+    
+    // Validate agent ID
+    if (!agentId || isNaN(parseInt(agentId))) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid agent ID'
+      });
+    }
+    
+    // Get tickets assigned to this agent
+    const [tickets] = await pool.execute(`
+      SELECT 
+        t.id,
+        t.name,
+        t.email,
+        t.mobile,
+        t.product,
+        t.product_id,
+        t.module,
+        t.module_id,
+        t.description,
+        t.issue_type,
+        t.issue_type_other,
+        t.issue_title,
+        t.status,
+        t.priority,
+        t.assigned_to,
+        t.assigned_by,
+        t.created_at,
+        t.updated_at,
+        t.first_response_at,
+        t.resolved_at,
+        t.attachment_name,
+        t.attachment_type,
+        a.name as assigned_to_name,
+        a.email as assigned_to_email
+      FROM tickets t
+      LEFT JOIN agents a ON t.assigned_to = a.id
+      WHERE t.assigned_to = ?
+      ORDER BY t.created_at DESC
+    `, [parseInt(agentId)]);
+    
+    console.log(`✅ Found ${tickets.length} tickets for agent ${agentId}`);
+    
+    res.json({
+      success: true,
+      message: `Found ${tickets.length} tickets for agent`,
+      data: tickets
+    });
+    
+  } catch (error) {
+    console.error('Error fetching agent tickets:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch agent tickets'
     });
   }
 });

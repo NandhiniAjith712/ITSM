@@ -50,6 +50,15 @@ const AgentDashboard = ({ agent }) => {
   // Notification state
   const [notifications, setNotifications] = useState([]);
   
+  // New ticket assignment notification state
+  const [showNewTicketNotification, setShowNewTicketNotification] = useState(false);
+  const [newTicketCount, setNewTicketCount] = useState(0);
+  
+  // Ticket status change notification state
+  const [showStatusNotification, setShowStatusNotification] = useState(false);
+  const [statusNotificationMessage, setStatusNotificationMessage] = useState('');
+  const [statusNotificationType, setStatusNotificationType] = useState('');
+  
   // Real-time timer updates
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -95,25 +104,96 @@ const AgentDashboard = ({ agent }) => {
     navigate('/login');
   };
   
-  // Fetch tickets from API
+  // Fetch tickets from API - Only tickets assigned to this agent
   const fetchTickets = async () => {
     try {
       setLoading(true);
       
-      const response = await fetch('http://localhost:5000/api/tickets', {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
+      // Get authentication token
+      const token = localStorage.getItem('userToken') || localStorage.getItem('access_token');
+      console.log('🔑 Agent Dashboard - Using token:', token ? 'Present' : 'Missing');
+      
+      const headers = {
+        'Content-Type': 'application/json'
+      };
+      
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      
+      // Get agent ID from localStorage (check both userData and agentData)
+      const userData = localStorage.getItem('userData');
+      const agentData = localStorage.getItem('agentData');
+      
+      let agentId = null;
+      if (userData) {
+        try {
+          const parsedUserData = JSON.parse(userData);
+          agentId = parsedUserData.id;
+          console.log('🔍 Found agent ID in userData:', agentId);
+        } catch (e) {
+          console.error('Error parsing userData:', e);
         }
+      }
+      
+      if (!agentId && agentData) {
+        try {
+          const parsedAgentData = JSON.parse(agentData);
+          agentId = parsedAgentData.id;
+          console.log('🔍 Found agent ID in agentData:', agentId);
+        } catch (e) {
+          console.error('Error parsing agentData:', e);
+        }
+      }
+      
+      if (!agentId) {
+        console.error('❌ Agent ID not found in localStorage');
+        console.log('🔍 Available localStorage keys:', Object.keys(localStorage));
+        console.log('🔍 userData:', userData);
+        console.log('🔍 agentData:', agentData);
+        setTickets([]);
+        return;
+      }
+      
+      // Fetch only tickets assigned to this agent
+      const response = await fetch(`http://localhost:5000/api/tickets/agent/${agentId}`, {
+        method: 'GET',
+        headers: headers
       });
+      
+      console.log('📡 Agent Dashboard - Tickets response status:', response.status);
       
       if (response.ok) {
         const result = await response.json();
         const ticketsArray = Array.isArray(result.data) ? result.data : [];
+        
+        // Check for new tickets (tickets created in the last 5 minutes)
+        const fiveMinutesAgo = new Date(Date.now() - 5 * 60 * 1000);
+        const newTickets = ticketsArray.filter(ticket => {
+          const ticketCreatedAt = new Date(ticket.created_at);
+          return ticketCreatedAt > fiveMinutesAgo;
+        });
+        
+        // Show notification if there are new tickets
+        if (newTickets.length > 0) {
+          setNewTicketCount(newTickets.length);
+          setShowNewTicketNotification(true);
+          console.log(`🎉 Found ${newTickets.length} new tickets assigned to agent!`);
+          
+          // Auto-hide notification after 5 seconds
+          setTimeout(() => {
+            setShowNewTicketNotification(false);
+            setNewTicketCount(0);
+          }, 5000);
+        }
+        
         setTickets(ticketsArray);
-        console.log('✅ Fetched tickets:', ticketsArray.length);
+        console.log('✅ Agent Dashboard - Fetched tickets for agent:', ticketsArray.length);
+        console.log('📊 Agent Dashboard - Tickets data:', ticketsArray);
       } else {
-        console.error('Failed to fetch tickets:', response.status, response.statusText);
+        console.error('❌ Agent Dashboard - Failed to fetch tickets:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('❌ Agent Dashboard - Error response:', errorText);
       }
     } catch (error) {
       console.error('Error fetching tickets:', error);
@@ -143,37 +223,57 @@ const AgentDashboard = ({ agent }) => {
     }
   };
 
-  // Fetch agents for ticket filtering
-  const fetchAgents = async () => {
-    try {
-      const response = await fetch('http://localhost:5000/api/agents?role=support_executive', {
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-      if (response.ok) {
-        const result = await response.json();
-        if (result.success) {
-          const sortedAgents = result.data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-          setAgents(sortedAgents);
-        }
-      } else {
-        console.error('Failed to fetch agents');
+  // Get current agent information from database
+  const [currentAgent, setCurrentAgent] = useState(null);
+  
+  const fetchCurrentAgentInfo = async () => {
+    console.log('🔍 fetchCurrentAgentInfo - Starting...');
+    
+    // Always try localStorage first since we know it has the correct data
+    const userData = localStorage.getItem('userData');
+    const agentData = localStorage.getItem('agentData');
+    
+    console.log('🔍 Raw userData from localStorage:', userData);
+    console.log('🔍 Raw agentData from localStorage:', agentData);
+    
+    if (userData) {
+      try {
+        const parsedUserData = JSON.parse(userData);
+        console.log('🔍 Parsed userData:', parsedUserData);
+        console.log('🔍 Email field in userData:', parsedUserData.email);
+        console.log('🔍 All keys in userData:', Object.keys(parsedUserData));
+        
+        setCurrentAgent({
+          id: parsedUserData.id,
+          name: parsedUserData.name,
+          email: parsedUserData.email
+        });
+        console.log('✅ Using userData from localStorage:', parsedUserData);
+        console.log('📧 Email from userData:', parsedUserData.email);
+        return; // Exit early since we have the data
+      } catch (e) {
+        console.error('Error parsing userData:', e);
       }
-    } catch (error) {
-      console.error('Error fetching agents:', error);
     }
-  };
-
-  // Filter tickets by selected agent
-  const filterTicketsByAgent = (agentId) => {
-    setSelectedAgentFilter(agentId);
-    if (!agentId) {
-      setFilteredTickets(tickets);
-    } else {
-      const filtered = tickets.filter(ticket => ticket.assigned_to === parseInt(agentId));
-      setFilteredTickets(filtered);
+    
+    if (agentData) {
+      try {
+        const parsedAgentData = JSON.parse(agentData);
+        setCurrentAgent(parsedAgentData);
+        console.log('✅ Using agentData from localStorage:', parsedAgentData);
+        return; // Exit early since we have the data
+      } catch (e) {
+        console.error('Error parsing agentData:', e);
+      }
     }
+    
+    // If no localStorage data, set default values
+    setCurrentAgent({
+      id: null,
+      name: 'Agent',
+      email: 'No email available'
+    });
+    console.log('⚠️ No agent data found in localStorage, using defaults');
   };
 
   // Fetch SLA configurations for timer calculations
@@ -211,8 +311,8 @@ const AgentDashboard = ({ agent }) => {
   useEffect(() => {
     fetchTickets();
     fetchProducts();
-    fetchAgents();
     fetchSLAConfigurations();
+    fetchCurrentAgentInfo();
     
     // Check if we're returning from a ticket detail page with preserved state
     if (location.state?.activeTab) {
@@ -246,15 +346,10 @@ const AgentDashboard = ({ agent }) => {
     return () => clearInterval(timer);
   }, []);
 
-  // Update filtered tickets when tickets or filters change
+  // Update filtered tickets when tickets change (no agent filtering needed since we only fetch agent's tickets)
   useEffect(() => {
-    if (selectedAgentFilter) {
-      const filtered = tickets.filter(ticket => ticket.assigned_to === parseInt(selectedAgentFilter));
-      setFilteredTickets(filtered);
-    } else {
-      setFilteredTickets(tickets);
-    }
-  }, [tickets, selectedAgentFilter]);
+    setFilteredTickets(tickets);
+  }, [tickets]);
 
   // Fetch ticket replies when tickets are loaded
   useEffect(() => {
@@ -369,6 +464,9 @@ const AgentDashboard = ({ agent }) => {
         setTickets(prev => prev.map(ticket =>
           ticket.id === ticketId ? { ...ticket, status: 'in_progress' } : ticket
         ));
+        
+        // Show status change notification
+        showStatusChangeNotification('in_progress');
       } else {
         console.error('Failed to update ticket status');
       }
@@ -376,6 +474,7 @@ const AgentDashboard = ({ agent }) => {
       console.error('Error updating ticket status:', error);
     }
   };
+
 
   // Handle status change for centralized ticket component
   const handleStatusChange = async (ticketId, newStatus) => {
@@ -394,6 +493,10 @@ const AgentDashboard = ({ agent }) => {
           ticket.id === ticketId ? { ...ticket, status: newStatus } : ticket
         ));
         console.log(`✅ Ticket status changed to ${newStatus} successfully`);
+        
+        // Show status change notification
+        showStatusChangeNotification(newStatus);
+        
         if (result.whatsappSent === false) {
           console.log('ℹ️ WhatsApp notification disabled (token expired)');
         }
@@ -409,13 +512,6 @@ const AgentDashboard = ({ agent }) => {
 
   const getTicketsByStatus = (status) => {
     let filteredTickets = tickets.filter(ticket => ticket.status === status);
-    
-    // Apply agent filter if a specific agent is selected
-    if (selectedAgentFilter) {
-      filteredTickets = filteredTickets.filter(ticket => 
-        ticket.assigned_to === parseInt(selectedAgentFilter)
-      );
-    }
     
     // Apply product filter if a specific product is selected
     if (selectedProduct !== 'all') {
@@ -556,7 +652,6 @@ const AgentDashboard = ({ agent }) => {
   };
 
   const sortTickets = (ticketsToSort) => {
-    console.log('🔍 sortTickets called with:', ticketsToSort.length, 'tickets');
     if (!sortConfig.key) return ticketsToSort;
 
     return [...ticketsToSort].sort((a, b) => {
@@ -699,6 +794,54 @@ const AgentDashboard = ({ agent }) => {
     );
   };
 
+  // Function to close the new ticket notification
+  const closeNewTicketNotification = () => {
+    setShowNewTicketNotification(false);
+    setNewTicketCount(0);
+  };
+
+  // Function to show status change notification
+  const showStatusChangeNotification = (status) => {
+    let message = '';
+    let type = '';
+    
+    switch (status) {
+      case 'in_progress':
+        message = 'Ticket In Progress';
+        type = 'in_progress';
+        break;
+      case 'closed':
+        message = 'Ticket Closed';
+        type = 'closed';
+        break;
+      case 'escalated':
+        message = 'Ticket Escalated';
+        type = 'escalated';
+        break;
+      default:
+        message = `Ticket ${status}`;
+        type = status;
+    }
+    
+    setStatusNotificationMessage(message);
+    setStatusNotificationType(type);
+    setShowStatusNotification(true);
+    
+    // Auto-hide notification after 3 seconds
+    setTimeout(() => {
+      setShowStatusNotification(false);
+      setStatusNotificationMessage('');
+      setStatusNotificationType('');
+    }, 3000);
+  };
+
+  // Function to close the status notification
+  const closeStatusNotification = () => {
+    setShowStatusNotification(false);
+    setStatusNotificationMessage('');
+    setStatusNotificationType('');
+  };
+
   if (loading) {
     return (
       <div className="dashboard-loading">
@@ -710,6 +853,52 @@ const AgentDashboard = ({ agent }) => {
 
   return (
     <div className="agent-dashboard sidepanel-layout">
+      {/* New Ticket Assignment Notification Popup */}
+      {showNewTicketNotification && (
+        <div className="new-ticket-notification-popup">
+          <div className="notification-content">
+            <div className="notification-icon">🎫</div>
+            <div className="notification-text">
+              <h3>New Ticket Assigned!</h3>
+              <p>
+                {newTicketCount === 1 
+                  ? 'You have been assigned 1 new ticket.' 
+                  : `You have been assigned ${newTicketCount} new tickets.`
+                }
+              </p>
+            </div>
+            <button 
+              className="notification-close-btn"
+              onClick={closeNewTicketNotification}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Ticket Status Change Notification Popup */}
+      {showStatusNotification && (
+        <div className="status-notification-popup">
+          <div className="notification-content">
+            <div className="notification-icon">
+              {statusNotificationType === 'in_progress' && '⚡'}
+              {statusNotificationType === 'closed' && '✅'}
+              {statusNotificationType === 'escalated' && '🚨'}
+            </div>
+            <div className="notification-text">
+              <h3>{statusNotificationMessage}</h3>
+            </div>
+            <button 
+              className="notification-close-btn"
+              onClick={closeStatusNotification}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
+      
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="notifications-container">
@@ -731,30 +920,19 @@ const AgentDashboard = ({ agent }) => {
         <div className="header-content">
           <div className="header-title-section">
             <h1 className="header-title">Agent Dashboard</h1>
-            <p className="header-subtitle">Manage Tickets, SLA Settings, and Product Filters</p>
+            <p className="header-subtitle">
+              Welcome, {currentAgent?.name || 'Agent'}
+            </p>
+            <p className="header-email">
+              {currentAgent?.email || 'No email available'}
+            </p>
           </div>
           <div className="header-actions">
             {/* Horizontal Action Buttons Row */}
             <div className="header-action-buttons">
-              {/* Agent Filter Dropdown */}
-              <div className="action-button agent-filter-btn">
-                <select
-                  value={selectedAgentFilter}
-                  onChange={(e) => filterTicketsByAgent(e.target.value)}
-                  className="agent-filter-select-inline"
-                >
-                  <option value="">👥 All Agents</option>
-                  {agents.map(agent => (
-                    <option key={agent.id} value={agent.id}>
-                      {agent.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              
               {/* Refresh Button */}
               <button className="action-button refresh-btn" onClick={fetchTickets}>
-                🔄 Refresh Tickets
+                🔄 Refresh My Tickets
               </button>
               
               {/* Table View Button */}
@@ -868,23 +1046,17 @@ const AgentDashboard = ({ agent }) => {
                               className="expand-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (activeTab === 'new') {
-                                  // Move ticket to In Progress
-                                  handleOpenTicket(ticket.id);
-                                } else {
-                                  // Open ticket details
-                                  navigate(`/ticket/${ticket.id}`, { 
-                                    state: { 
-                                      from: 'agent-dashboard',
-                                      returnPath: '/agent-dashboard',
-                                      activeTab: activeTab,
-                                      selectedProduct: selectedProduct
-                                    } 
-                                  });
-                                }
+                                navigate(`/ticket/${ticket.id}`, { 
+                                  state: { 
+                                    from: 'agent-dashboard',
+                                    returnPath: '/agent-dashboard',
+                                    activeTab: activeTab,
+                                    selectedProduct: selectedProduct
+                                  } 
+                                });
                               }}
                             >
-                              {activeTab === 'new' ? '▶️ Tickets' : 'View Ticket'}
+                              View Ticket
                             </button>
                           </div>
                         </div>
@@ -941,23 +1113,17 @@ const AgentDashboard = ({ agent }) => {
                               className="expand-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (activeTab === 'new') {
-                                  // Move ticket to In Progress
-                                  handleOpenTicket(ticket.id);
-                                } else {
-                                  // Open ticket details
-                                  navigate(`/ticket/${ticket.id}`, { 
-                                    state: { 
-                                      from: 'agent-dashboard',
-                                      returnPath: '/agent-dashboard',
-                                      activeTab: activeTab,
-                                      selectedProduct: selectedProduct
-                                    } 
-                                  });
-                                }
+                                navigate(`/ticket/${ticket.id}`, { 
+                                  state: { 
+                                    from: 'agent-dashboard',
+                                    returnPath: '/agent-dashboard',
+                                    activeTab: activeTab,
+                                    selectedProduct: selectedProduct
+                                  } 
+                                });
                               }}
                             >
-                              {activeTab === 'new' ? '▶️ Tickets' : 'View Ticket'}
+                              View Ticket
                             </button>
                           </div>
                         </div>
@@ -1014,23 +1180,17 @@ const AgentDashboard = ({ agent }) => {
                               className="expand-btn"
                               onClick={(e) => {
                                 e.stopPropagation();
-                                if (activeTab === 'new') {
-                                  // Move ticket to In Progress
-                                  handleOpenTicket(ticket.id);
-                                } else {
-                                  // Open ticket details
-                                  navigate(`/ticket/${ticket.id}`, { 
-                                    state: { 
-                                      from: 'agent-dashboard',
-                                      returnPath: '/agent-dashboard',
-                                      activeTab: activeTab,
-                                      selectedProduct: selectedProduct
-                                    } 
-                                  });
-                                }
+                                navigate(`/ticket/${ticket.id}`, { 
+                                  state: { 
+                                    from: 'agent-dashboard',
+                                    returnPath: '/agent-dashboard',
+                                    activeTab: activeTab,
+                                    selectedProduct: selectedProduct
+                                  } 
+                                });
                               }}
                             >
-                              {activeTab === 'new' ? '▶️ Tickets' : 'View Ticket'}
+                              View Ticket
                             </button>
                           </div>
                         </div>
@@ -1087,16 +1247,17 @@ const AgentDashboard = ({ agent }) => {
                             className="expand-btn expand-btn-closed"
                             onClick={(e) => {
                               e.stopPropagation();
-                              if (activeTab === 'new') {
-                                // Move ticket to In Progress
-                                handleOpenTicket(ticket.id);
-                              } else {
-                                // Open ticket details
-                                navigate(`/ticket/${ticket.id}`);
-                              }
+                              navigate(`/ticket/${ticket.id}`, { 
+                                state: { 
+                                  from: 'agent-dashboard',
+                                  returnPath: '/agent-dashboard',
+                                  activeTab: activeTab,
+                                  selectedProduct: selectedProduct
+                                } 
+                              });
                             }}
                           >
-                              {activeTab === 'new' ? '▶️ Tickets' : 'View Ticket'}
+                              View Ticket
                             </button>
                           </div>
                         </div>

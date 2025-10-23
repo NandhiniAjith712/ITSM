@@ -22,7 +22,7 @@ async function assignTicketsToAgents() {
     console.log(`Found ${agents.length} support executives`);
     
     if (agents.length === 0) {
-      console.log('❌ No support executives found');
+      console.log(' No support executives found');
       return;
     }
     
@@ -37,7 +37,7 @@ async function assignTicketsToAgents() {
     console.log(`Found ${unassignedTickets.length} unassigned tickets`);
     
     if (unassignedTickets.length === 0) {
-      console.log('❌ No unassigned tickets found');
+      console.log(' No unassigned tickets found');
       return;
     }
     
@@ -77,7 +77,7 @@ async function assignTicketsToAgents() {
     });
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
   } finally {
     if (connection) {
       await connection.end();

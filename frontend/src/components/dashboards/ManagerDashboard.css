@@ -18,6 +18,7 @@
   border-radius: 0;
   margin: 0;
   position: relative;
+  z-index: 1000;
   background: #F0F5FF !important;
 
 }
@@ -82,6 +83,50 @@
   color: #1f2937; /* Slightly darker on hover */
 }
 
+/* Action Button Styles */
+.manager-dashboard .action-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: #ffffff;
+  color: #374151;
+  text-decoration: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.manager-dashboard .action-button:hover {
+  background: #f9fafb;
+  border-color: #9ca3af;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.manager-dashboard .action-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.manager-dashboard .action-button.refresh-btn {
+  background: #f0f5ff;
+  color: #1e40af;
+  border-color: #3b82f6;
+}
+
+.manager-dashboard .action-button.refresh-btn:hover:not(:disabled) {
+  background: #e0e7ff;
+  border-color: #2563eb;
+  color: #1e3a8a;
+}
+
 .manager-dashboard.sidepanel-layout {
   display: flex;
   flex-direction: column;
@@ -110,6 +155,7 @@
   margin-top: 23px; /* Move entire nav panel down with white background */
   position: sticky;
   top: 0;
+  z-index: 100;
 }
 
 .manager-dashboard .sidepanel-tab {
@@ -158,7 +204,7 @@
   flex: 1;
   padding: 32px;
   overflow-y: auto;
-  overflow-x: auto;
+  overflow-x: hidden;
   background: #ffffff;
   border-radius: 0;
   margin: 0;
@@ -194,9 +240,12 @@
 
 /* Escalated Tickets Table Styles */
 .escalated-tickets-section {
-  padding: -5px;
+  padding: 0;
   border-radius: 12px;
   margin: 20px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .escalated-header {
@@ -223,8 +272,11 @@
 .escalated-table-container {
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
 }
 
 .escalated-table {
@@ -232,7 +284,8 @@
   border-collapse: separate;
   border-spacing: 0;
   background: white;
-  table-layout: fixed;
+  table-layout: auto;
+  min-width: 100%;
 }
 
 .table-header {
@@ -434,9 +487,12 @@
 
 /* Closed Tickets Table Styles */
 .closed-tickets-section {
-  padding: -5px;
+  padding: 0;
   border-radius: 12px;
   margin: 20px;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .closed-header {
@@ -460,15 +516,19 @@
 .closed-table-container {
   background: white;
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 100%;
 }
 
 .closed-table {
   width: 100%;
   border-collapse: collapse;
   background: white;
-  table-layout: fixed;
+  table-layout: auto;
+  min-width: 100%;
 }
 
 /* Closed table column alignment to match escalated table */
@@ -825,19 +885,16 @@
 }
 
 .manager-dashboard .ticket-card.closed {
-  background: rgba(255, 255, 255, 0.95);
-  backdrop-filter: blur(10px);
+  background: #f8f9fa;
   border-radius: 12px;
   padding: 12px !important;
   margin-bottom: 12px !important;
-  box-shadow: 0 4px 16px 0 rgba(44, 62, 80, 0.08);
   border: 1px solid #e2e8f0;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s;
 }
 
 .manager-dashboard .ticket-card.closed:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px 0 rgba(44, 62, 80, 0.12);
+  transform: translateY(-1px);
 }
 
 .status-badge.closed {
@@ -1401,9 +1458,9 @@
 }
 
 .reply-send-btn {
-  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  background: #3b82f6;
   color: white;
-  border: none;
+  border: 1px solid #2563eb;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -1414,21 +1471,24 @@
 }
 
 .reply-send-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%);
+  background: #2563eb;
+  border-color: #1d4ed8;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
 }
 
 .reply-send-btn:disabled {
-  background: #9ca3af;
+  background: #bfdbfe;
+  color: #1e40af;
+  border: 1px solid #93c5fd;
   cursor: not-allowed;
   transform: none;
 }
 
 .reply-cancel-btn {
-  background: #6b7280;
-  color: white;
-  border: none;
+  background: white;
+  color: #374151;
+  border: 1px solid #d1d5db;
   padding: 12px 24px;
   border-radius: 8px;
   font-size: 0.95rem;
@@ -1439,14 +1499,35 @@
 }
 
 .reply-cancel-btn:hover:not(:disabled) {
-  background: #4b5563;
+  background: #f8fafc;
+  border-color: #9ca3af;
   transform: translateY(-1px);
+}
+
+.reply-cancel-btn:active {
+  background: #3b82f6;
+  color: white;
+  border-color: #2563eb;
+  transform: translateY(0);
 }
 
 .reply-cancel-btn:disabled {
   background: #9ca3af;
   cursor: not-allowed;
   transform: none;
+}
+
+/* Toggled button states */
+.reply-send-btn-toggled {
+  background: white !important;
+  color: #374151 !important;
+  border: 1px solid #d1d5db !important;
+}
+
+.reply-cancel-btn-toggled {
+  background: #3b82f6 !important;
+  color: white !important;
+  border: 1px solid #2563eb !important;
 }
 
 /* Ticket Reply Section */
@@ -1538,7 +1619,7 @@
     width: 100%;
     height: auto;
     flex-direction: row;
-    overflow-x: auto;
+    overflow-x: hidden;
     padding: 16px;
     position: relative;
   }
@@ -2354,8 +2435,8 @@
 }
 
 .escalated-chat-message.agent {
-  background: #f3e5f5;
-  border-left: 4px solid #9c27b0;
+  background: #f8f9fa;
+  border-left: 4px solid #6c757d;
 }
 
 .escalated-message-header {
@@ -2417,6 +2498,20 @@
 
 /* Responsive Design for Escalated Section */
 @media (max-width: 768px) {
+  .escalated-tickets-section {
+    margin: 10px;
+    padding: 0;
+  }
+  
+  .escalated-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .escalated-table {
+    min-width: 600px;
+  }
+  
   .escalated-detail-header {
     flex-direction: column;
     gap: 15px;
@@ -2820,8 +2915,8 @@
 }
 
 .closed-chat-message.agent {
-  background: #f3e5f5;
-  border-left: 4px solid #9c27b0;
+  background: #f8f9fa;
+  border-left: 4px solid #6c757d;
 }
 
 .closed-message-header {
@@ -2873,6 +2968,20 @@
 
 /* Responsive Design for Closed Section */
 @media (max-width: 768px) {
+  .closed-tickets-section {
+    margin: 10px;
+    padding: 0;
+  }
+  
+  .closed-table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  
+  .closed-table {
+    min-width: 600px;
+  }
+  
   .closed-detail-header {
     flex-direction: column;
     gap: 15px;
